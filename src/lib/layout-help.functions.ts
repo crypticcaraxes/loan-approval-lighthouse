@@ -32,9 +32,9 @@ export const diagnoseLayout = createServerFn({ method: "POST" })
       const result = streamText({
         model: provider.responses("openai/gpt-6-astra"),
         maxRetries: 0,
+        instructions: SYSTEM,
         onError: ({ error }) => { streamError = error; },
         messages: [
-          { role: "system", content: SYSTEM },
           {
             role: "user",
             content: `Page: ${data.page}\nDevice: ${data.device}\nScreen width: ${data.width ?? "unknown"}px\nProblem: ${data.description}`,

@@ -30,6 +30,9 @@
   --color-success-foreground: var(--success-foreground);
   --color-highlight: var(--highlight);
   --color-link: var(--link);
+  --color-cream: var(--cream);
+  --color-brand: var(--brand);
+  --color-cta: var(--cta);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -63,6 +66,10 @@
   --border: oklch(0.91 0.01 260);
   --input: oklch(0.91 0.01 260);
   --ring: oklch(0.5 0.14 258);
+  --cream: oklch(0.96 0.01 60);
+  --brand: oklch(0.63 0.22 33);
+  --cta: oklch(0.45 0.25 268);
+  --gradient-strip: linear-gradient(90deg, var(--cta), oklch(0.6 0.25 320), var(--brand), oklch(0.75 0.17 60));
   --gradient-hero: linear-gradient(160deg, var(--primary) 0%, var(--primary-deep) 100%);
   --shadow-card: 0 6px 20px -10px color-mix(in oklab, var(--primary-deep) 30%, transparent);
 }
@@ -78,3 +85,5 @@
 
 @utility bg-hero { background-image: var(--gradient-hero); }
 @utility shadow-card { box-shadow: var(--shadow-card); }
+
+@utility bg-strip { background-image: var(--gradient-strip); }

@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Landmark, ArrowLeftRight, CreditCard, User } from "lucide-react";
+import { Home, Landmark, CalendarClock, HelpCircle, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "Home", icon: Home },
   { to: "/loans", label: "Loans", icon: Landmark },
-  { to: null, label: "Move Money", icon: ArrowLeftRight },
-  { to: null, label: "Cards", icon: CreditCard },
+  { to: null, label: "Payments", icon: CalendarClock },
+  { to: null, label: "Help", icon: HelpCircle },
   { to: null, label: "Profile", icon: User },
 ] as const;
 

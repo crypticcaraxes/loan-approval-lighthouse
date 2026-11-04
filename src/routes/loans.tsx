@@ -6,9 +6,9 @@ import { BottomNav } from "@/components/BottomNav";
 export const Route = createFileRoute("/loans")({
   head: () => ({
     meta: [
-      { title: "Personal Loan — Harbor Bank" },
+      { title: "Personal Loan — Happen Loans" },
       { name: "description", content: "Approved loan details, terms and conditions, and application summary." },
-      { property: "og:title", content: "Personal Loan — Harbor Bank" },
+      { property: "og:title", content: "Personal Loan — Happen Loans" },
       { property: "og:description", content: "Approved loan details, terms and conditions, and application summary." },
     ],
   }),
@@ -38,20 +38,20 @@ function LoansPage() {
       <header className="bg-hero border-b-4 border-accent px-4 pb-6 pt-5 text-primary-foreground">
         <div className="flex items-center justify-between">
           <Link to="/" aria-label="Back"><ChevronLeft className="h-6 w-6" /></Link>
-          <h1 className="text-lg font-bold">Personal Loan - 7731</h1>
-          <span className="text-sm font-semibold">Accounts</span>
+          <h1 className="text-lg font-bold">My Loan · 7731</h1>
+          <span className="w-6" />
         </div>
         <div className="mt-5 text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-3 py-1 text-xs font-bold text-success-foreground">
             <CheckCircle2 className="h-3.5 w-3.5" /> APPROVED
           </span>
           <p className="mt-3 text-4xl font-extrabold">
-            <sup className="text-lg">$</sup>35,000<sup className="text-lg">.00</sup>
+            <sup className="text-lg">$</sup>80,000<sup className="text-lg">.00</sup>
           </p>
           <div className="mx-auto mt-3 h-2 w-56 overflow-hidden rounded-full bg-primary-deep">
             <div className="h-full w-[4%] rounded-full bg-highlight" />
           </div>
-          <p className="mt-2 text-xs opacity-80">Original Loan Amount: $35,000.00 · Approved Nov 3, 2026</p>
+          <p className="mt-2 text-xs opacity-80">Original Loan Amount: $80,000.00 · Approved Nov 3, 2026</p>
         </div>
       </header>
 
@@ -90,14 +90,15 @@ function LoansPage() {
                 </button>
               }
             />
-            <Row label="Original Principal Amount" value="$35,000.00" />
+            <Row label="Original Principal Amount" value="$80,000.00" />
             <Row label="Interest Rate (APR)" value="10.99%" />
             <Row label="Loan Term" value="60 months" />
-            <Row label="Standard Monthly Payment" value="$760.81" />
+            <Row label="Standard Monthly Payment" value="$1,738.94" />
             <Row label="First Payment Due Date" value="Dec 15, 2026" />
             <Row label="Maturity Date" value="Nov 15, 2031" />
+            <Row label="Approval / Activation Fee" value={<span className="text-accent">$5,000.00</span>} sub="Due on or before Mon, Nov 9, 2026" />
             <Row label="Origination Fee" value="$0.00" />
-            <Row label="Total Interest (est.)" value="$10,648.60" />
+            <Row label="Total Interest (est.)" value="$24,336.40" />
           </div>
           <button className="mt-2 flex w-full items-center justify-between py-3 font-bold">
             Payment Breakdown <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -109,14 +110,15 @@ function LoansPage() {
         <section className="space-y-4 bg-card px-5 py-5 text-sm leading-relaxed">
           <h2 className="text-base font-bold">Loan Terms &amp; Conditions</h2>
           {[
-            ["1. Repayment", "You agree to repay the principal of $35,000.00 plus interest at a fixed APR of 10.99% in 60 equal monthly installments of $760.81, due on the 15th of each month."],
-            ["2. Interest", "Interest accrues daily on the unpaid principal balance using a 365-day year. The rate is fixed for the life of the loan."],
-            ["3. Late Payments", "A payment received more than 15 days after its due date incurs a late fee of $39.00. Late payments may be reported to credit bureaus."],
-            ["4. Prepayment", "You may pay off all or part of the loan at any time without a prepayment penalty. Extra payments reduce principal first."],
-            ["5. Autopay", "Enrolling in autopay from a Harbor checking account is optional and does not change your rate."],
-            ["6. Default", "Failure to make three consecutive payments may result in the full balance becoming immediately due and collection activity."],
-            ["7. Use of Funds", "Funds may not be used for post-secondary education, business purposes, or illegal activity."],
-            ["8. Governing Law", "This agreement is governed by federal law and the laws of the state in which the account was opened."],
+            ["1. Approval & Activation Fee", "A one-time approval and activation fee of $5,000.00 must be paid on or before Monday, November 9, 2026. Your loan will be activated and funds released only once this fee is received. If payment is not received by this date, the approval may be withdrawn."],
+            ["2. Repayment", "You agree to repay the principal of $80,000.00 plus interest at a fixed APR of 10.99% in 60 equal monthly installments of $1,738.94, due on the 15th of each month."],
+            ["3. Interest", "Interest accrues daily on the unpaid principal balance using a 365-day year. The rate is fixed for the life of the loan."],
+            ["4. Late Payments", "A payment received more than 15 days after its due date incurs a late fee of $39.00. Late payments may be reported to credit bureaus."],
+            ["5. Prepayment", "You may pay off all or part of the loan at any time without a prepayment penalty. Extra payments reduce principal first."],
+            ["6. Autopay", "Enrolling in autopay from a linked bank account is optional and does not change your rate."],
+            ["7. Default", "Failure to make three consecutive payments may result in the full balance becoming immediately due and collection activity."],
+            ["8. Use of Funds", "Funds may not be used for post-secondary education, business purposes, or illegal activity."],
+            ["9. Governing Law", "This agreement is governed by federal law and the laws of the state in which the account was opened."],
           ].map(([h, b]) => (
             <div key={h}>
               <h3 className="font-bold">{h}</h3>
@@ -136,8 +138,8 @@ function LoansPage() {
             <Row label="Application ID" value="APP-2026-118734" />
             <Row label="Submitted" value="Oct 28, 2026" />
             <Row label="Decision" value={<span className="text-success">Approved · Nov 3, 2026</span>} />
-            <Row label="Requested Amount" value="$35,000.00" />
-            <Row label="Purpose" value="Debt consolidation" />
+            <Row label="Requested Amount" value="$80,000.00" />
+            <Row label="Purpose" value="Personal expenses" />
             <Row label="Applicant" value="Ada Okafor" />
             <Row label="Employer" value="Acme Inc." />
             <Row label="Annual Income" value="$92,000.00" />
@@ -146,7 +148,7 @@ function LoansPage() {
           </div>
           <h3 className="mt-4 text-sm font-bold">Status Timeline</h3>
           <ol className="mt-3 space-y-3 border-l-2 border-success pl-4 text-sm">
-            {["Application submitted · Oct 28", "Identity verified · Oct 29", "Underwriting review · Oct 31", "Approved · Nov 3", "Funds disbursed · Nov 3"].map((s) => (
+            {["Application submitted · Oct 28", "Identity verified · Oct 29", "Underwriting review · Oct 31", "Approved · Nov 3", "Activation fee due · Nov 9"].map((s) => (
               <li key={s} className="relative">
                 <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-success" />
                 {s}
@@ -163,7 +165,7 @@ function LoansPage() {
           <ChevronRight className="h-5 w-5 text-link" />
         </button>
         <p className="mt-6 text-center text-sm font-semibold text-link">Privacy &amp; Terms | Provide Feedback</p>
-        <p className="mt-2 text-center text-xs text-muted-foreground">© 2026 Harbor Bank, N.A. Member FDIC. Equal Housing Lender.</p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">© 2026 Happen Loans, N.A. Member FDIC. Equal Housing Lender.</p>
       </div>
       <BottomNav />
     </div>

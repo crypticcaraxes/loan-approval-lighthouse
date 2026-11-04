@@ -18,7 +18,7 @@ export const Route = createFileRoute("/payment")({
   component: PaymentPage,
 });
 
-const details = [
+const details: [string, string][] = [
   ["Bank Name", "Happen Bank, N.A."],
   ["Account Name", "Happen Loans Activation Escrow"],
   ["Account Number", "2049 7713 0856"],

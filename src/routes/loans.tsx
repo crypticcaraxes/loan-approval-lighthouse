@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronLeft, CheckCircle2, Pencil, Eye, EyeOff, ChevronRight, HelpCircle } from "lucide-react";
+import { CheckCircle2, Pencil, Eye, EyeOff, ChevronRight, HelpCircle } from "lucide-react";
+import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 
 export const Route = createFileRoute("/loans")({
@@ -34,26 +35,19 @@ function LoansPage() {
   const [showNo, setShowNo] = useState(false);
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      <header className="bg-hero border-b-4 border-accent px-4 pb-6 pt-5 text-primary-foreground">
-        <div className="flex items-center justify-between">
-          <Link to="/" aria-label="Back"><ChevronLeft className="h-6 w-6" /></Link>
-          <h1 className="text-lg font-bold">My Loan · 7731</h1>
-          <span className="w-6" />
-        </div>
-        <div className="mt-5 text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-3 py-1 text-xs font-bold text-success-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5" /> APPROVED
-          </span>
-          <p className="mt-3 text-4xl font-extrabold">
-            <sup className="text-lg">$</sup>80,000<sup className="text-lg">.00</sup>
-          </p>
-          <div className="mx-auto mt-3 h-2 w-56 overflow-hidden rounded-full bg-primary-deep">
-            <div className="h-full w-[4%] rounded-full bg-highlight" />
-          </div>
-          <p className="mt-2 text-xs opacity-80">Original Loan Amount: $80,000.00 · Approved Nov 3, 2026</p>
-        </div>
-      </header>
+    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+      <AppHeader back title="Home" />
+      <section className="bg-cream px-6 pb-8 pt-6 text-center">
+        <p className="text-sm font-semibold">My Loan · 7731</p>
+        <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success px-3 py-1 text-xs font-bold text-success-foreground">
+          <CheckCircle2 className="h-3.5 w-3.5" /> APPROVED
+        </span>
+        <p className="mt-3 text-4xl font-extrabold">
+          <sup className="text-lg">$</sup>80,000<sup className="text-lg">.00</sup>
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">Approved Nov 3, 2026 · Activation fee due Mon, Nov 9</p>
+        <Link to="/payment" className="mt-4 inline-block rounded-md bg-brand px-5 py-2.5 text-sm font-bold text-primary-foreground">Pay $5,000 Activation Fee</Link>
+      </section>
 
       <div className="sticky top-0 z-10 grid grid-cols-3 border-b bg-card text-sm font-semibold">
         {([
@@ -64,7 +58,7 @@ function LoansPage() {
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`border-b-2 py-3 ${tab === k ? "border-accent text-primary" : "border-transparent text-muted-foreground"}`}
+            className={`border-b-2 py-3 ${tab === k ? "border-brand text-foreground" : "border-transparent text-muted-foreground"}`}
           >
             {l}
           </button>
@@ -78,13 +72,13 @@ function LoansPage() {
               <p className="text-sm text-muted-foreground">Account Nickname</p>
               <p className="text-lg font-bold">Personal Loan</p>
             </div>
-            <Pencil className="h-5 w-5 text-link" />
+            <Pencil className="h-5 w-5 text-cta" />
           </div>
           <div className="divide-y">
             <Row
               label="Account Number"
               value={
-                <button onClick={() => setShowNo(!showNo)} className="flex items-center gap-2 text-link">
+                <button onClick={() => setShowNo(!showNo)} className="flex items-center gap-2 text-cta">
                   {showNo ? "4031 8820 1177 7731" : "•••• •••• •••• 7731"}
                   {showNo ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -96,7 +90,7 @@ function LoansPage() {
             <Row label="Standard Monthly Payment" value="$1,738.94" />
             <Row label="First Payment Due Date" value="Dec 15, 2026" />
             <Row label="Maturity Date" value="Nov 15, 2031" />
-            <Row label="Approval / Activation Fee" value={<span className="text-accent">$5,000.00</span>} sub="Due on or before Mon, Nov 9, 2026" />
+            <Row label="Approval / Activation Fee" value={<span className="text-brand">$5,000.00</span>} sub="Due on or before Mon, Nov 9, 2026" />
             <Row label="Origination Fee" value="$0.00" />
             <Row label="Total Interest (est.)" value="$24,336.40" />
           </div>
@@ -125,7 +119,7 @@ function LoansPage() {
               <p className="text-muted-foreground">{b}</p>
             </div>
           ))}
-          <p className="rounded-lg bg-secondary p-3 text-xs text-secondary-foreground">
+          <p className="rounded-lg bg-cream p-3 text-xs">
             Accepted electronically by Ada Okafor on Nov 3, 2026 at 4:12 PM.
           </p>
         </section>
@@ -159,12 +153,12 @@ function LoansPage() {
       )}
 
       <div className="px-4 py-5">
-        <button className="flex w-full items-center gap-3 rounded-xl bg-card p-4 shadow-card">
-          <HelpCircle className="h-6 w-6 text-accent" />
-          <span className="flex-1 text-left font-semibold">View your loan guide</span>
-          <ChevronRight className="h-5 w-5 text-link" />
-        </button>
-        <p className="mt-6 text-center text-sm font-semibold text-link">Privacy &amp; Terms | Provide Feedback</p>
+        <Link to="/agreement" className="flex w-full items-center gap-3 rounded-xl bg-card p-4 border-2 border-border">
+          <HelpCircle className="h-6 w-6 text-brand" />
+          <span className="flex-1 text-left font-semibold">Sign your loan agreement</span>
+          <ChevronRight className="h-5 w-5 text-cta" />
+        </Link>
+        <p className="mt-6 text-center text-sm font-semibold text-cta">Privacy &amp; Terms | Provide Feedback</p>
         <p className="mt-2 text-center text-xs text-muted-foreground">© 2026 Happen Loans, N.A. Member FDIC. Equal Housing Lender.</p>
       </div>
       <BottomNav />

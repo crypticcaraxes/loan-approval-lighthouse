@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, Menu } from "lucide-react";
+import { ChevronLeft, MonitorSmartphone } from "lucide-react";
+import { DesktopNav } from "./BottomNav";
 
 export function Logo() {
   return (
@@ -11,27 +12,27 @@ export function Logo() {
 
 export function AppHeader({ back, title }: { back?: boolean; title?: string }) {
   return (
-    <>
+    <div className="sticky top-0 z-30">
       <div className="h-1.5 bg-strip" />
-      <header className="flex items-center justify-between bg-cream px-5 py-4">
-        {back ? (
-          <Link to="/" aria-label="Back" className="flex items-center gap-1 text-sm font-semibold">
-            <ChevronLeft className="h-5 w-5" /> {title ?? "Back"}
-          </Link>
-        ) : (
-          <Logo />
-        )}
-        <div className="flex items-center gap-3">
-          {back && <Logo />}
-          {!back && (
-            <Link to="/loans" className="rounded-md bg-cta px-3 py-2 text-xs font-bold text-primary-foreground">
-              View My Loan
+      <header className="flex items-center justify-between gap-4 border-b bg-cream px-5 py-4 md:px-8 md:py-3">
+        <div className="flex items-center gap-2">
+          {back && (
+            <Link to="/" aria-label="Back" className="flex items-center gap-1 text-sm font-semibold md:hidden">
+              <ChevronLeft className="h-5 w-5" /> {title ?? "Back"}
             </Link>
           )}
-          {!back && <Menu className="h-6 w-6" />}
+          <Link to="/" className={back ? "hidden md:inline" : ""}><Logo /></Link>
+        </div>
+        <DesktopNav />
+        <div className="flex items-center gap-3">
+          {back && <span className="md:hidden"><Logo /></span>}
+          <Link to="/layout-help" aria-label="Report a screen issue" title="Screen looks wrong?"
+            className="flex items-center gap-1.5 rounded-md border-2 border-border bg-card px-2.5 py-1.5 text-xs font-bold text-cta">
+            <MonitorSmartphone className="h-4 w-4" /><span className="hidden lg:inline">Screen issue?</span>
+          </Link>
         </div>
       </header>
-    </>
+    </div>
   );
 }
 

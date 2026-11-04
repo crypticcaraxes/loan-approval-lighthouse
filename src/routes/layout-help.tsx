@@ -64,7 +64,7 @@ function LayoutHelpPage() {
   return (
     <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24 md:pb-10">
       <AppHeader back title="Home" />
-      <PageIntro title="Something look wrong on your screen?">
+      <PageIntro title="Does something look wrong on your screen?">
         Tell us which page looks off and what you see. Our AI assistant will point out the likely cause and suggest a fix.
       </PageIntro>
       <div className="grid gap-8 px-6 py-6 md:grid-cols-2 md:px-10">

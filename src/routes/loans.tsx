@@ -49,7 +49,7 @@ function LoansPage() {
         <Link to="/payment" className="mt-4 inline-block rounded-md bg-brand px-5 py-2.5 text-sm font-bold text-primary-foreground">Pay $5,000 Activation Fee</Link>
       </section>
 
-      <div className="sticky top-0 z-10 grid grid-cols-3 border-b bg-card text-sm font-semibold">
+      <div className="sticky top-[78px] md:top-[66px] z-10 grid grid-cols-3 border-b bg-card text-sm font-semibold">
         {([
           ["details", "Loan Details"],
           ["terms", "Terms"],

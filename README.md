@@ -1,14 +1,23 @@
-# Welcome to your Lovable project
+# Loan Approval Lighthouse
+
+I want to build a bank app 
+the will be a main page - home  (had the 
+
+there will be a loan page,  and i want the "approved" refrence (the page also include loan terms and condition) and tab to see the loan application details
+
+reactjs, tsx, tailwindcss, use the image refrence for design, refrence and color
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://loan-approval-lighthouse.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/832697bf-67dc-4eb8-87e2-ce000a9313cf).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +29,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS

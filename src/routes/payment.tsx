@@ -38,13 +38,13 @@ function PaymentPage() {
     setTimeout(() => setCopied(null), 1500);
   };
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+    <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader back title="Home" />
       <PageIntro title="Pay your $5,000 activation fee">
         Send the fee by bank transfer to the account below on or before <b className="text-foreground">Monday, November 9, 2026</b>.
       </PageIntro>
 
-      <section className="px-6 py-5">
+      <section className="px-6 py-5 md:px-10">
         <div className="rounded-lg border-2 border-border p-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amount due</p>
           <p className="text-3xl font-extrabold">$5,000.00</p>
@@ -52,7 +52,7 @@ function PaymentPage() {
         </div>
 
         <h2 className="mt-6 text-base font-bold">Transfer details</h2>
-        <div className="mt-2 divide-y-2 divide-border">
+        <div className="mt-2 divide-y-2 divide-border md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0 md:[&>*]:border-b-2">
           {details.map(([k, v]) => (
             <div key={k} className="flex items-center justify-between gap-3 py-3">
               <div>

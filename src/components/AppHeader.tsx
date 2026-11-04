@@ -37,8 +37,8 @@ export function AppHeader({ back, title }: { back?: boolean; title?: string }) {
 
 export function PageIntro({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <section className="bg-cream px-6 pb-8 pt-6">
-      <h1 className="text-[28px] font-extrabold leading-tight tracking-tight">{title}</h1>
+    <section className="bg-cream px-6 pb-8 pt-6 md:px-10 md:pt-10">
+      <h1 className="text-[28px] md:text-4xl font-extrabold leading-tight tracking-tight">{title}</h1>
       {children && <div className="mt-3 text-[15px] leading-relaxed text-muted-foreground">{children}</div>}
     </section>
   );

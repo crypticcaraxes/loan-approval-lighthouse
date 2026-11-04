@@ -35,7 +35,7 @@ function LoansPage() {
   const [showNo, setShowNo] = useState(false);
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+    <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader back title="Home" />
       <section className="bg-cream px-6 pb-8 pt-6 text-center">
         <p className="text-sm font-semibold">My Loan · 7731</p>

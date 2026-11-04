@@ -54,7 +54,7 @@ const groups: [string, [string, string][]][] = [
 
 function ProfilePage() {
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+    <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader back title="Home" />
       <section className="flex items-center gap-4 bg-cream px-6 pb-8 pt-6">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-xl font-extrabold text-primary-foreground">AO</span>
@@ -64,11 +64,11 @@ function ProfilePage() {
         </div>
       </section>
       {groups.map(([title, rows]) => (
-        <section key={title} className="px-6 pt-5">
+        <section key={title} className="px-6 pt-5 md:px-10">
           <h2 className="text-base font-bold">{title}</h2>
-          <div className="mt-1 divide-y-2 divide-border">
+          <div className="mt-1 divide-y-2 divide-border md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0 md:[&>*]:border-b-2">
             {rows.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-4 py-3 text-sm">
+              <div key={k} className="flex min-w-0 justify-between gap-4 py-3 text-sm">
                 <span className="text-muted-foreground">{k}</span>
                 <span className="text-right font-bold">{v}</span>
               </div>
@@ -76,7 +76,7 @@ function ProfilePage() {
           </div>
         </section>
       ))}
-      <div className="px-6 py-6">
+      <div className="px-6 py-6 md:px-10 md:max-w-sm">
         <Link to="/login" className="flex items-center justify-center gap-2 rounded-md border-2 border-brand py-3 font-bold text-brand">
           <LogOut className="h-4 w-4" /> Log Out
         </Link>

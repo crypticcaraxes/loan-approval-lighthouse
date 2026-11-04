@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgreementRouteImport } from './routes/agreement'
+import { Route as LayoutHelpRouteImport } from './routes/layout-help'
 import { Route as LoansRouteImport } from './routes/loans'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PaymentRouteImport } from './routes/payment'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AgreementRoute = AgreementRouteImport.update({
   id: '/agreement',
   path: '/agreement',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutHelpRoute = LayoutHelpRouteImport.update({
+  id: '/layout-help',
+  path: '/layout-help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoansRoute = LoansRouteImport.update({
@@ -50,6 +56,7 @@ const ProfileRoute = ProfileRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agreement': typeof AgreementRoute
+  '/layout-help': typeof LayoutHelpRoute
   '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agreement': typeof AgreementRoute
+  '/layout-help': typeof LayoutHelpRoute
   '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agreement': typeof AgreementRoute
+  '/layout-help': typeof LayoutHelpRoute
   '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
@@ -74,13 +83,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agreement' | '/loans' | '/login' | '/payment' | '/profile'
+  fullPaths:
+    | '/'
+    | '/agreement'
+    | '/layout-help'
+    | '/loans'
+    | '/login'
+    | '/payment'
+    | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agreement' | '/loans' | '/login' | '/payment' | '/profile'
+  to:
+    | '/'
+    | '/agreement'
+    | '/layout-help'
+    | '/loans'
+    | '/login'
+    | '/payment'
+    | '/profile'
   id:
     | '__root__'
     | '/'
     | '/agreement'
+    | '/layout-help'
     | '/loans'
     | '/login'
     | '/payment'
@@ -90,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgreementRoute: typeof AgreementRoute
+  LayoutHelpRoute: typeof LayoutHelpRoute
   LoansRoute: typeof LoansRoute
   LoginRoute: typeof LoginRoute
   PaymentRoute: typeof PaymentRoute
@@ -110,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/agreement'
       fullPath: '/agreement'
       preLoaderRoute: typeof AgreementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/layout-help': {
+      id: '/layout-help'
+      path: '/layout-help'
+      fullPath: '/layout-help'
+      preLoaderRoute: typeof LayoutHelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loans': {
@@ -146,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgreementRoute: AgreementRoute,
+  LayoutHelpRoute: LayoutHelpRoute,
   LoansRoute: LoansRoute,
   LoginRoute: LoginRoute,
   PaymentRoute: PaymentRoute,

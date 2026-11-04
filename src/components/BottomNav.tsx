@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Landmark, CalendarClock, HelpCircle, User } from "lucide-react";
+import { Home, Landmark, CalendarClock, FileSignature, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "Home", icon: Home },
   { to: "/loans", label: "Loans", icon: Landmark },
-  { to: null, label: "Payments", icon: CalendarClock },
-  { to: null, label: "Help", icon: HelpCircle },
-  { to: null, label: "Profile", icon: User },
+  { to: "/payment", label: "Payments", icon: CalendarClock },
+  { to: "/agreement", label: "Agreement", icon: FileSignature },
+  { to: "/profile", label: "Profile", icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -20,7 +20,7 @@ export function BottomNav() {
                 to={to}
                 activeOptions={{ exact: true }}
                 className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold text-muted-foreground"
-                activeProps={{ className: "text-primary" }}
+                activeProps={{ className: "text-brand" }}
               >
                 <Icon className="h-5 w-5" />
                 {label}

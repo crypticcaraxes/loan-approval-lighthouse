@@ -1,118 +1,86 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, Eye, ChevronRight, Send, Download, Receipt, MapPin, Landmark, CheckCircle2 } from "lucide-react";
+import { Menu, Landmark, FileSignature, BadgeCheck, Wallet, ChevronRight } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Home — Harbor Bank" },
-      { name: "description", content: "Your accounts, balances and recent activity at a glance." },
-      { property: "og:title", content: "Home — Harbor Bank" },
-      { property: "og:description", content: "Your accounts, balances and recent activity at a glance." },
+      { title: "You're Approved — Happen Loans" },
+      { name: "description", content: "Your $80,000 loan is approved. Finish a few steps to activate it." },
+      { property: "og:title", content: "You're Approved — Happen Loans" },
+      { property: "og:description", content: "Your $80,000 loan is approved. Finish a few steps to activate it." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Index,
 });
 
-const actions = [
-  { label: "Transfer", icon: Send },
-  { label: "Deposit", icon: Download },
-  { label: "Pay Bills", icon: Receipt },
-  { label: "Find ATM", icon: MapPin },
-];
-
-const activity = [
-  { name: "Loan disbursement", date: "Nov 3", amount: "+$35,000.00", positive: true },
-  { name: "Whole Foods Market", date: "Nov 2", amount: "-$84.21" },
-  { name: "Payroll — Acme Inc.", date: "Oct 31", amount: "+$3,240.00", positive: true },
-  { name: "Netflix", date: "Oct 29", amount: "-$15.49" },
+const steps = [
+  { title: "Pay activation fee", sub: "$5,000.00 due by Mon, Nov 9", icon: Wallet, to: "/loans" as const },
+  { title: "Set up payments", sub: "Link your bank for monthly repayments", icon: Landmark },
+  { title: "Sign loan agreement", sub: "Review and e-sign your terms", icon: FileSignature, to: "/loans" as const },
+  { title: "Receive your funds", sub: "Released once activation is complete", icon: BadgeCheck },
 ];
 
 function Index() {
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      <header className="bg-hero border-b-4 border-accent px-5 pb-8 pt-6 text-primary-foreground">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm opacity-80">Good evening,</p>
-            <h1 className="text-xl font-bold">Ada Okafor</h1>
-          </div>
-          <button aria-label="Notifications" className="rounded-full bg-primary-foreground/10 p-2">
-            <Bell className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="mt-6 text-center">
-          <p className="flex items-center justify-center gap-2 text-sm opacity-80">
-            <span className="h-2 w-2 rounded-full bg-highlight" /> Total Balance <Eye className="h-4 w-4" />
-          </p>
-          <p className="mt-1 text-4xl font-extrabold tracking-tight">
-            <sup className="text-lg">$</sup>42,819<sup className="text-lg">.68</sup>
-          </p>
-          <p className="mt-1 text-xs opacity-70">Checking •••• 4948</p>
+    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+      <div className="h-1.5 bg-strip" />
+      <header className="flex items-center justify-between bg-cream px-5 py-4">
+        <span className="text-2xl font-extrabold italic tracking-tight text-brand">
+          Happen<span className="ml-0.5 align-top text-[9px] not-italic">LOANS</span>
+        </span>
+        <div className="flex items-center gap-3">
+          <Link to="/loans" className="rounded-md bg-cta px-3 py-2 text-xs font-bold text-primary-foreground">
+            View My Loan
+          </Link>
+          <Menu className="h-6 w-6" />
         </div>
       </header>
 
-      <section className="-mt-5 px-4">
-        <div className="grid grid-cols-4 gap-2 rounded-xl bg-card p-3 shadow-card">
-          {actions.map(({ label, icon: Icon }) => (
-            <button key={label} className="flex flex-col items-center gap-1.5 py-1 text-[11px] font-semibold text-foreground">
-              <span className="rounded-full bg-secondary p-2.5 text-primary"><Icon className="h-5 w-5" /></span>
-              {label}
-            </button>
-          ))}
-        </div>
+      <section className="bg-cream px-6 pb-10 pt-10">
+        <h1 className="text-[32px] font-extrabold leading-tight tracking-tight">
+          Congrats, you're approved for $80,000!
+        </h1>
+        <p className="mt-5 text-[15px] leading-relaxed text-muted-foreground">
+          Complete the steps below to activate your loan. Your $5,000 activation fee is due on or before
+          Monday, November 9, 2026.
+        </p>
       </section>
 
-      <section className="mt-5 px-4">
-        <Link to="/loans" className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
-          <span className="rounded-full bg-success/15 p-2 text-success"><CheckCircle2 className="h-5 w-5" /></span>
-          <div className="flex-1">
-            <p className="text-sm font-bold">Your personal loan is approved</p>
-            <p className="text-xs text-muted-foreground">$35,000.00 at 10.99% APR · View details</p>
-          </div>
-          <ChevronRight className="h-5 w-5 text-link" />
+      <ol className="px-6 py-4">
+        {steps.map(({ title, sub, icon: Icon, to }, i) => {
+          const inner = (
+            <>
+              <span className="relative">
+                <Icon className="h-10 w-10 stroke-[1.4]" />
+                <span className="absolute -bottom-1 -right-1 h-3 w-5 rounded-sm bg-brand" />
+              </span>
+              <div className="flex-1">
+                <p className="text-base font-medium">{i + 1}. {title}</p>
+                <p className="text-xs text-muted-foreground">{sub}</p>
+              </div>
+              {to && <ChevronRight className="h-5 w-5 text-cta" />}
+            </>
+          );
+          return (
+            <li key={title} className="border-b-2 border-border last:border-0">
+              {to ? (
+                <Link to={to} className="flex items-center gap-5 py-5">{inner}</Link>
+              ) : (
+                <div className="flex items-center gap-5 py-5">{inner}</div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="px-6">
+        <Link to="/loans" className="block rounded-md bg-brand py-3.5 text-center font-bold text-primary-foreground">
+          Pay $5,000 Activation Fee
         </Link>
-      </section>
-
-      <section className="mt-6 px-4">
-        <h2 className="mb-2 px-1 text-sm font-bold text-muted-foreground">Accounts</h2>
-        <div className="divide-y rounded-xl bg-card shadow-card">
-          {[
-            { name: "Everyday Checking", no: "4948", bal: "$7,819.68" },
-            { name: "High-Yield Savings", no: "2210", bal: "$35,000.00" },
-            { name: "Personal Loan", no: "7731", bal: "$35,000.00", loan: true },
-          ].map((a) => (
-            <Link key={a.no} to={a.loan ? "/loans" : "/"} className="flex items-center justify-between px-4 py-3.5">
-              <div className="flex items-center gap-3">
-                <Landmark className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm font-semibold">{a.name}</p>
-                  <p className="text-xs text-muted-foreground">•••• {a.no}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-bold">{a.bal}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-6 px-4">
-        <h2 className="mb-2 px-1 text-sm font-bold text-muted-foreground">Recent Activity</h2>
-        <div className="divide-y rounded-xl bg-card shadow-card">
-          {activity.map((t) => (
-            <div key={t.name} className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="text-sm font-semibold">{t.name}</p>
-                <p className="text-xs text-muted-foreground">{t.date}</p>
-              </div>
-              <span className={`text-sm font-bold ${t.positive ? "text-success" : "text-foreground"}`}>{t.amount}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      </div>
       <BottomNav />
     </div>
   );

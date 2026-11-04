@@ -27,10 +27,12 @@ export const diagnoseLayout = createServerFn({ method: "POST" })
       apiKey,
       headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
     });
+    let streamError: unknown;
     try {
       const result = streamText({
         model: provider.responses("openai/gpt-6-astra"),
         maxRetries: 0,
+        onError: ({ error }) => { streamError = error; },
         messages: [
           { role: "system", content: SYSTEM },
           {
@@ -51,7 +53,8 @@ export const diagnoseLayout = createServerFn({ method: "POST" })
       const text = await result.text;
       if (!text.trim()) return { ok: false as const, error: "The AI couldn't produce a suggestion. Please add more detail." };
       return { ok: true as const, text };
-    } catch (e: unknown) {
+    } catch (e0: unknown) {
+      const e = streamError ?? e0;
       const status = (e as { statusCode?: number })?.statusCode;
       console.error("diagnoseLayout failed", e);
       if (status === 429) return { ok: false as const, error: "Too many requests right now. Please try again in a minute." };

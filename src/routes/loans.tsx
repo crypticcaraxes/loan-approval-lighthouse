@@ -35,7 +35,7 @@ function LoansPage() {
   const [showNo, setShowNo] = useState(false);
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+    <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader back title="Home" />
       <section className="bg-cream px-6 pb-8 pt-6 text-center">
         <p className="text-sm font-semibold">My Loan · 7731</p>
@@ -66,7 +66,7 @@ function LoansPage() {
       </div>
 
       {tab === "details" && (
-        <section className="bg-card px-5 pb-4">
+        <section className="bg-card px-5 pb-4 md:px-10">
           <div className="flex items-end justify-between py-3">
             <div>
               <p className="text-sm text-muted-foreground">Account Nickname</p>
@@ -101,7 +101,7 @@ function LoansPage() {
       )}
 
       {tab === "terms" && (
-        <section className="space-y-4 bg-card px-5 py-5 text-sm leading-relaxed">
+        <section className="space-y-4 bg-card px-5 py-5 md:px-10 text-sm leading-relaxed">
           <h2 className="text-base font-bold">Loan Terms &amp; Conditions</h2>
           {[
             ["1. Approval & Activation Fee", "A one-time approval and activation fee of $5,000.00 must be paid on or before Monday, November 9, 2026. Your loan will be activated and funds released only once this fee is received. If payment is not received by this date, the approval may be withdrawn."],
@@ -126,7 +126,7 @@ function LoansPage() {
       )}
 
       {tab === "application" && (
-        <section className="bg-card px-5 pb-4">
+        <section className="bg-card px-5 pb-4 md:px-10">
           <h2 className="pt-4 text-base font-bold">Application Summary</h2>
           <div className="divide-y">
             <Row label="Application ID" value="APP-2026-118734" />
@@ -152,7 +152,7 @@ function LoansPage() {
         </section>
       )}
 
-      <div className="px-4 py-5">
+      <div className="px-4 py-5 md:px-10">
         <Link to="/agreement" className="flex w-full items-center gap-3 rounded-xl bg-card p-4 border-2 border-border">
           <HelpCircle className="h-6 w-6 text-brand" />
           <span className="flex-1 text-left font-semibold">Sign your loan agreement</span>

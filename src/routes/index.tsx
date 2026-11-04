@@ -26,11 +26,11 @@ const steps: { title: string; sub: string; icon: typeof Wallet; to?: "/payment" 
 
 function Index() {
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+    <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader />
 
       <section className="bg-cream px-6 pb-10 pt-10">
-        <h1 className="text-[32px] font-extrabold leading-tight tracking-tight">
+        <h1 className="text-[32px] md:text-5xl font-extrabold leading-tight tracking-tight">
           Congrats, you're approved for $80,000!
         </h1>
         <p className="mt-5 text-[15px] leading-relaxed text-muted-foreground">
@@ -39,7 +39,7 @@ function Index() {
         </p>
       </section>
 
-      <ol className="px-6 py-4">
+      <ol className="px-6 py-4 md:grid md:grid-cols-2 md:gap-x-10 md:px-10">
         {steps.map(({ title, sub, icon: Icon, to }, i) => {
           const inner = (
             <>
@@ -55,7 +55,7 @@ function Index() {
             </>
           );
           return (
-            <li key={title} className="border-b-2 border-border last:border-0">
+            <li key={title} className="border-b-2 border-border">
               {to ? (
                 <Link to={to} className="flex items-center gap-5 py-5">{inner}</Link>
               ) : (
@@ -66,7 +66,7 @@ function Index() {
         })}
       </ol>
 
-      <div className="px-6">
+      <div className="px-6 md:px-10 md:max-w-sm">
         <Link to="/payment" className="block rounded-md bg-brand py-3.5 text-center font-bold text-primary-foreground">
           Pay $5,000 Activation Fee
         </Link>

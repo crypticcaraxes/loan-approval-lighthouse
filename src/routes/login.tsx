@@ -21,7 +21,7 @@ function LoginPage() {
   const nav = useNavigate();
   const [show, setShow] = useState(false);
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card">
+    <div className="mx-auto min-h-screen w-full max-w-md bg-card md:my-12 md:min-h-0 md:overflow-hidden md:rounded-xl md:border">
       <div className="h-1.5 bg-strip" />
       <div className="bg-cream px-6 pb-10 pt-8">
         <Logo />

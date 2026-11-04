@@ -45,15 +45,15 @@ function AgreementPage() {
   const valid = agree && name.trim().toLowerCase() === "ada okafor";
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-card pb-24">
+    <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader back title="Home" />
       <PageIntro title="Sign your loan agreement">Review the key terms below, then e-sign to continue.</PageIntro>
 
-      <section className="px-6 py-5">
+      <section className="px-6 py-5 md:px-10">
         <h2 className="text-base font-bold">Loan summary</h2>
-        <div className="mt-2 divide-y-2 divide-border">
+        <div className="mt-2 divide-y-2 divide-border md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0 md:[&>*]:border-b-2">
           {summary.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-4 py-3 text-sm">
+            <div key={k} className="flex min-w-0 justify-between gap-4 py-3 text-sm">
               <span className="text-muted-foreground">{k}</span>
               <span className="text-right font-bold">{v}</span>
             </div>

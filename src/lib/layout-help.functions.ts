@@ -18,7 +18,7 @@ Keep it under 200 words. Do not invent details beyond what is described.`;
 export const diagnoseLayout = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) return { ok: false as const, error: "The AI helper isn't configured yet." };
     const { createOpenAI } = await import("@ai-sdk/openai");
     const { streamText } = await import("ai");

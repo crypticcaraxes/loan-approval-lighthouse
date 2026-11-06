@@ -9,9 +9,9 @@ import { diagnoseLayout } from "@/lib/layout-help.functions";
 export const Route = createFileRoute("/layout-help")({
   head: () => ({
     meta: [
-      { title: "Report a Screen Issue — Happen Loans" },
+      { title: "Report a Screen Issue — Lendora Finance" },
       { name: "description", content: "Describe a screen that looks wrong and get an AI-suggested fix." },
-      { property: "og:title", content: "Report a Screen Issue — Happen Loans" },
+      { property: "og:title", content: "Report a Screen Issue — Lendora Finance" },
       { property: "og:description", content: "Describe a screen that looks wrong and get an AI-suggested fix." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

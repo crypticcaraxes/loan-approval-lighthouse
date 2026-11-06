@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { CheckCircle2, Pencil, Eye, EyeOff, ChevronRight, HelpCircle } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,9 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 export const Route = createFileRoute("/loans")({
   head: () => ({
     meta: [
-      { title: "Personal Loan — Happen Loans" },
+      { title: "Personal Loan — Lendora Finance" },
       { name: "description", content: "Approved loan details, terms and conditions, and application summary." },
-      { property: "og:title", content: "Personal Loan — Happen Loans" },
+      { property: "og:title", content: "Personal Loan — Lendora Finance" },
       { property: "og:description", content: "Approved loan details, terms and conditions, and application summary." },
     ],
   }),
@@ -31,8 +31,18 @@ function Row({ label, value, sub }: { label: string; value: React.ReactNode; sub
 }
 
 function LoansPage() {
+  const nav = useNavigate();
   const [tab, setTab] = useState<Tab>("details");
   const [showNo, setShowNo] = useState(false);
+  const isAuth = typeof window !== "undefined" && !!sessionStorage.getItem("lendora_auth");
+
+  useEffect(() => {
+    if (!isAuth) {
+      nav({ to: "/login" });
+    }
+  }, [isAuth, nav]);
+
+  if (!isAuth) return null;
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
@@ -120,7 +130,7 @@ function LoansPage() {
             </div>
           ))}
           <p className="rounded-lg bg-cream p-3 text-xs">
-            Accepted electronically by Ada Okafor on Nov 3, 2026 at 4:12 PM.
+            Accepted electronically by Ann caribell on Nov 3, 2026 at 4:12 PM.
           </p>
         </section>
       )}
@@ -134,7 +144,7 @@ function LoansPage() {
             <Row label="Decision" value={<span className="text-success">Approved · Nov 3, 2026</span>} />
             <Row label="Requested Amount" value="$80,000.00" />
             <Row label="Purpose" value="Personal expenses" />
-            <Row label="Applicant" value="Ada Okafor" />
+            <Row label="Applicant" value="Ann caribell" />
             <Row label="Employer" value="Acme Inc." />
             <Row label="Annual Income" value="$92,000.00" />
             <Row label="Housing" value="Rent · $1,450/mo" />
@@ -159,7 +169,7 @@ function LoansPage() {
           <ChevronRight className="h-5 w-5 text-cta" />
         </Link>
         <p className="mt-6 text-center text-sm font-semibold text-cta">Privacy &amp; Terms | Provide Feedback</p>
-        <p className="mt-2 text-center text-xs text-muted-foreground">© 2026 Happen Loans, N.A. Member FDIC. Equal Housing Lender.</p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">© 2026 Lendora Finance, N.A. Member FDIC. Equal Housing Lender.</p>
       </div>
       <BottomNav />
     </div>

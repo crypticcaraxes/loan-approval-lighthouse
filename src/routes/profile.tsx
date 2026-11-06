@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
@@ -6,9 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "My Profile — Happen Loans" },
+      { title: "My Profile — Lendora Finance" },
       { name: "description", content: "Personal, employment and financial details for your loan." },
-      { property: "og:title", content: "My Profile — Happen Loans" },
+      { property: "og:title", content: "My Profile — Lendora Finance" },
       { property: "og:description", content: "Personal, employment and financial details for your loan." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -19,14 +20,14 @@ export const Route = createFileRoute("/profile")({
 
 const groups: [string, [string, string][]][] = [
   ["Personal Information", [
-    ["Full Legal Name", "Ada Chinwe Okafor"],
+    ["Full Legal Name", " Ann caribell"],
     ["Date of Birth", "Mar 14, 1990"],
     ["SSN", "•••-••-4417"],
     ["Marital Status", "Single"],
     ["Citizenship", "U.S. Citizen"],
   ]],
   ["Contact", [
-    ["Email", "ada.okafor@email.com"],
+    ["Email", "ann.caribell748@email.com"],
     ["Mobile", "(612) 555-0148"],
     ["Home Address", "1820 Lakeview Ave, Apt 4B, Minneapolis, MN 55408"],
     ["Time at Address", "3 years, 2 months"],
@@ -53,13 +54,24 @@ const groups: [string, [string, string][]][] = [
 ];
 
 function ProfilePage() {
+  const nav = useNavigate();
+  const isAuth = typeof window !== "undefined" && !!sessionStorage.getItem("lendora_auth");
+
+  useEffect(() => {
+    if (!isAuth) {
+      nav({ to: "/login" });
+    }
+  }, [isAuth, nav]);
+
+  if (!isAuth) return null;
+
   return (
     <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader back title="Home" />
       <section className="flex items-center gap-4 bg-cream px-6 pb-8 pt-6">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-xl font-extrabold text-primary-foreground">AO</span>
         <div>
-          <h1 className="text-2xl font-extrabold">Ada Okafor</h1>
+          <h1 className="text-2xl font-extrabold">Ann caribell</h1>
           <p className="text-sm text-muted-foreground">Member since Oct 2026</p>
         </div>
       </section>
@@ -77,7 +89,11 @@ function ProfilePage() {
         </section>
       ))}
       <div className="px-6 py-6 md:px-10 md:max-w-sm">
-        <Link to="/login" className="flex items-center justify-center gap-2 rounded-md border-2 border-brand py-3 font-bold text-brand">
+        <Link
+          to="/login"
+          onClick={() => sessionStorage.removeItem("lendora_auth")}
+          className="flex items-center justify-center gap-2 rounded-md border-2 border-brand py-3 font-bold text-brand"
+        >
           <LogOut className="h-4 w-4" /> Log Out
         </Link>
       </div>

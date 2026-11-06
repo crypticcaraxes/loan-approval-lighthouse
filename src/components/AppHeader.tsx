@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, MonitorSmartphone } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { DesktopNav } from "./BottomNav";
 
 export function Logo() {
   return (
     <span className="text-2xl font-extrabold italic tracking-tight text-brand">
-      Happen<span className="ml-0.5 align-top text-[9px] not-italic">LOANS</span>
+      Lendora<span className="ml-0.5 align-top text-[9px] not-italic">FINANCE</span>
     </span>
   );
 }
@@ -24,13 +24,7 @@ export function AppHeader({ back, title }: { back?: boolean; title?: string }) {
           <Link to="/" className={back ? "hidden md:inline" : ""}><Logo /></Link>
         </div>
         <DesktopNav />
-        <div className="flex items-center gap-3">
-          {back && <span className="md:hidden"><Logo /></span>}
-          <Link to="/layout-help" aria-label="Report a screen issue" title="Screen looks wrong?"
-            className="flex items-center gap-1.5 rounded-md border-2 border-border bg-card px-2.5 py-1.5 text-xs font-bold text-cta">
-            <MonitorSmartphone className="h-4 w-4" /><span className="hidden lg:inline">Screen issue?</span>
-          </Link>
-        </div>
+        {back && <span className="md:hidden"><Logo /></span>}
       </header>
     </div>
   );

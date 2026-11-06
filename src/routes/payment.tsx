@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Copy, Check, AlertCircle } from "lucide-react";
 import { AppHeader, PageIntro } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,9 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 export const Route = createFileRoute("/payment")({
   head: () => ({
     meta: [
-      { title: "Pay Activation Fee — Happen Loans" },
+      { title: "Pay Activation Fee — Lendora Finance" },
       { name: "description", content: "Bank transfer details for your $5,000 loan activation fee." },
-      { property: "og:title", content: "Pay Activation Fee — Happen Loans" },
+      { property: "og:title", content: "Pay Activation Fee — Lendora Finance" },
       { property: "og:description", content: "Bank transfer details for your $5,000 loan activation fee." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -19,19 +19,28 @@ export const Route = createFileRoute("/payment")({
 });
 
 const details: [string, string][] = [
-  ["Bank Name", "Happen Bank, N.A."],
-  ["Account Name", "Happen Loans Activation Escrow"],
-  ["Account Number", "2049 7713 0856"],
-  ["Routing Number (ACH)", "091 000 022"],
+  ["Bank Name", "Lendora Finance, N.A."],
+  ["Account Name", "Lendora Finance Activation Escrow"],
+  ["Account Number", "722 9255 026"],
   ["Wire Routing Number", "026 009 593"],
-  ["SWIFT Code", "HPNBUS33"],
-  ["Account Type", "Business Checking"],
+  ["Account Type", "Everyday Checking"],
   ["Payment Reference", "APP-2026-118734"],
   ["Bank Address", "400 Market St, Minneapolis, MN 55402"],
 ];
 
 function PaymentPage() {
+  const nav = useNavigate();
   const [copied, setCopied] = useState<string | null>(null);
+  const isAuth = typeof window !== "undefined" && !!sessionStorage.getItem("lendora_auth");
+
+  useEffect(() => {
+    if (!isAuth) {
+      nav({ to: "/login" });
+    }
+  }, [isAuth, nav]);
+
+  if (!isAuth) return null;
+
   const copy = (k: string, v: string) => {
     navigator.clipboard?.writeText(v.replace(/\s/g, k === "Bank Address" || k.includes("Name") ? " " : ""));
     setCopied(k);

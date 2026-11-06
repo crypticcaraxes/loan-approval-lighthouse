@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Landmark, FileSignature, BadgeCheck, Wallet, ChevronRight } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
@@ -6,9 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "You're Approved — Happen Loans" },
+      { title: "You're Approved — Lendora Finance" },
       { name: "description", content: "Your $80,000 loan is approved. Finish a few steps to activate it." },
-      { property: "og:title", content: "You're Approved — Happen Loans" },
+      { property: "og:title", content: "You're Approved — Lendora Finance" },
       { property: "og:description", content: "Your $80,000 loan is approved. Finish a few steps to activate it." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -25,6 +26,17 @@ const steps: { title: string; sub: string; icon: typeof Wallet; to?: "/payment" 
 ];
 
 function Index() {
+  const nav = useNavigate();
+  const isAuth = typeof window !== "undefined" && !!sessionStorage.getItem("lendora_auth");
+
+  useEffect(() => {
+    if (!isAuth) {
+      nav({ to: "/login" });
+    }
+  }, [isAuth, nav]);
+
+  if (!isAuth) return null;
+
   return (
     <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
       <AppHeader />
@@ -66,8 +78,12 @@ function Index() {
         })}
       </ol>
 
-      <div className="px-6 md:px-10 md:max-w-sm">
-        <Link to="/payment" className="block rounded-md bg-brand py-3.5 text-center font-bold text-primary-foreground">
+      {/* Pay button — left-aligned on desktop, full-width on mobile */}
+      <div className="px-6 pt-2 md:px-10">
+        <Link
+          to="/payment"
+          className="block rounded-md bg-brand py-3.5 text-center font-bold text-primary-foreground md:inline-block md:min-w-[280px] md:px-8"
+        >
           Pay $5,000 Activation Fee
         </Link>
       </div>

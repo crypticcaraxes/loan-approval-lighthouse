@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { AppHeader, PageIntro } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,9 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 export const Route = createFileRoute("/agreement")({
   head: () => ({
     meta: [
-      { title: "Sign Loan Agreement — Happen Loans" },
+      { title: "Sign Loan Agreement — Lendora Finance" },
       { name: "description", content: "Review and e-sign your $80,000 personal loan agreement." },
-      { property: "og:title", content: "Sign Loan Agreement — Happen Loans" },
+      { property: "og:title", content: "Sign Loan Agreement — Lendora Finance" },
       { property: "og:description", content: "Review and e-sign your $80,000 personal loan agreement." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -19,8 +19,8 @@ export const Route = createFileRoute("/agreement")({
 });
 
 const summary = [
-  ["Borrower", "Ada Okafor"],
-  ["Lender", "Happen Loans, a division of Happen Bank, N.A."],
+  ["Borrower", "Ann caribell"],
+  ["Lender", "Lendora Finance, a division of Lendora Finance, N.A."],
   ["Loan Amount", "$80,000.00"],
   ["Interest Rate (APR)", "10.99% fixed"],
   ["Term", "60 months"],
@@ -39,10 +39,20 @@ const clauses = [
 ];
 
 function AgreementPage() {
+  const nav = useNavigate();
   const [agree, setAgree] = useState(false);
   const [name, setName] = useState("");
   const [signed, setSigned] = useState(false);
-  const valid = agree && name.trim().toLowerCase() === "ada okafor";
+  const valid = agree && name.trim().toLowerCase() === "Ann caribell";
+  const isAuth = typeof window !== "undefined" && !!sessionStorage.getItem("lendora_auth");
+
+  useEffect(() => {
+    if (!isAuth) {
+      nav({ to: "/login" });
+    }
+  }, [isAuth, nav]);
+
+  if (!isAuth) return null;
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md md:max-w-3xl lg:max-w-5xl md:border-x bg-card pb-24">
@@ -74,7 +84,7 @@ function AgreementPage() {
           <div className="mt-6 rounded-lg bg-cream p-5 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
             <p className="mt-2 font-bold">Agreement signed</p>
-            <p className="text-sm text-muted-foreground">Signed by Ada Okafor on Nov 4, 2026</p>
+            <p className="text-sm text-muted-foreground">Signed by Ann caribell on Nov 4, 2026</p>
             <Link to="/payment" className="mt-4 block rounded-md bg-brand py-3 font-bold text-primary-foreground">
               Pay $5,000 Activation Fee
             </Link>
@@ -87,7 +97,7 @@ function AgreementPage() {
             </label>
             <div>
               <label htmlFor="sig" className="text-xs font-semibold text-muted-foreground">Type your full legal name to sign</label>
-              <input id="sig" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ada Okafor"
+              <input id="sig" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ann caribell"
                 className="mt-1 w-full rounded-md border-2 border-border bg-card px-3 py-3 text-lg italic outline-none focus:border-cta" />
             </div>
             <button disabled={!valid} onClick={() => setSigned(true)}

@@ -2,10 +2,10 @@ import { i as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react, t as QueryClientProvider } from "../_libs/react+tanstack__react-query.mjs";
 import { _ as createFileRoute, d as Scripts, f as HeadContent, g as lazyRouteComponent, h as Outlet, m as createRouter, v as createRootRouteWithContext, x as useRouter, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-KJwg4GUa.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-B-E_FhOH.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
-var styles_default = "/assets/styles-CYvshy1o.css";
+var styles_default = "/assets/styles-Cj2_CRIv.css";
 function reportLovableError(error, context = {}) {
 	if (typeof window === "undefined") return;
 	window.__lovableEvents?.captureException?.(error, {
@@ -282,7 +282,7 @@ var Route$3 = createFileRoute("/loans")({
 	] }),
 	component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-var $$splitComponentImporter$2 = () => import("./login-DBYuglkw.mjs");
+var $$splitComponentImporter$2 = () => import("./login-CfcE2i7Z.mjs");
 var Route$2 = createFileRoute("/login")({
 	head: () => ({ meta: [
 		{ title: "Log In — Lendora Finance" },

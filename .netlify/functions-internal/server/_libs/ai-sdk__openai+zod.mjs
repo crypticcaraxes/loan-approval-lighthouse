@@ -1,5 +1,5 @@
 import { n as __exportAll } from "../_runtime.mjs";
-import { $ as isFullMediaType, A as createNullLanguageModelUsage, At as toolCaller, Bt as _enum, C as createBinaryStreamResponseHandler, D as createJsonLinesResponseHandler, Dt as serializeModelOptions, E as createJsonErrorResponseHandler, Et as secureJsonParse, F as createToolNameMapping, Ft as withoutTrailingSlash, Gt as boolean, Ht as _null, I as deleteFromApi, It as zodSchema, Jt as intersection, L as detectMediaType, Lt as WORKFLOW_DESERIALIZE, M as createProviderDefinedToolFactoryWithOutputSchema, Mt as validateTypes, N as createProviderExecutedToolFactory, Nt as waitForWebSocketBufferDrain, O as createJsonResponseHandler, Ot as stringifyWithBigIntAndCycles, P as createProviderStreamError, Pt as withUserAgentSuffix, R as downloadBlob, Rt as WORKFLOW_SERIALIZE, S as createBinaryResponseHandler, St as resolveWith, Tt as safeValidateTypes, U as generateId, Ut as any, W as getFromApi, Wt as array, Xt as lazy, Yt as json, Z as isCustomReasoning, Zt as literal, _ as convertBase64ToUint8Array, _n as isJSONObject, _t as postToApi, an as tuple, b as convertToFormData, bt as resolveFullMediaType, cn as _coercedNumber, ct as loadOptionalSetting, dn as InvalidArgumentError, dt as normalizeBatchRequestCounts, en as number$1, et as isNonNullable, fn as InvalidPromptError, ft as parseJSON, g as convertAsyncIteratorToReadableStream, gt as postMultipartStreamToApi, h as connectToWebSocket, hn as UnsupportedFunctionalityError, ht as postJsonToApi, in as string, j as createProviderDefinedToolFactory, jt as validateBaseURL, k as createLanguageModelResponseMetadata, kt as toWebSocketUrl, l as EMBEDDING_MODEL_MAX_INPUT_BYTES_PER_CALL, lt as mapReasoningToProviderEffort, m as combineHeaders, mn as TooManyEmbeddingValuesForCallError, mt as postFormDataToApi, nn as record, on as union, ot as lazySchema, pn as InvalidResponseDataError, pt as parseProviderOptions, q as getTopLevelMediaType, qt as discriminatedUnion, rn as strictObject, rt as isRecord, sn as unknown, st as loadApiKey, tn as object, u as StreamingToolCallTracker, un as APICallError, ut as mediaTypeToExtension, v as convertInlineFileDataToUint8Array, w as createEventSourceResponseHandler, wt as safeParseJSON, x as convertUint8ArrayToBase64, xt as resolveProviderReference, y as convertToBase64, yt as resolve, z as encodePathSegment, zt as ZodNumber } from "./@ai-sdk/gateway+[...].mjs";
+import { $ as isFullMediaType, A as createNullLanguageModelUsage, At as toWebSocketUrl, Bt as ZodNumber, C as createBinaryStreamResponseHandler, Ct as resolveWith, D as createJsonLinesResponseHandler, Dt as secureJsonParse, E as createJsonErrorResponseHandler, Et as safeValidateTypes, F as createToolNameMapping, Ft as withUserAgentSuffix, Gt as array, I as deleteFromApi, It as withoutTrailingSlash, Jt as discriminatedUnion, Kt as boolean, L as detectMediaType, Lt as zodSchema, M as createProviderDefinedToolFactoryWithOutputSchema, Mt as validateBaseURL, N as createProviderExecutedToolFactory, Nt as validateTypes, O as createJsonResponseHandler, Ot as serializeModelOptions, P as createProviderStreamError, Pt as waitForWebSocketBufferDrain, Qt as literal, R as downloadBlob, Rt as WORKFLOW_DESERIALIZE, S as createBinaryResponseHandler, St as resolveProviderReference, Tt as safeParseJSON, U as generateId, Ut as _null, Vt as _enum, W as getFromApi, Wt as any, Xt as json, Yt as intersection, Z as isCustomReasoning, Zt as lazy, _ as convertBase64ToUint8Array, _t as postToApi, an as string, b as convertToFormData, bt as resolve, cn as unknown, ct as loadOptionalSetting, dn as APICallError, dt as normalizeBatchRequestCounts, et as isNonNullable, fn as InvalidArgumentError, ft as parseJSON, g as convertAsyncIteratorToReadableStream, gn as UnsupportedFunctionalityError, gt as postMultipartStreamToApi, h as connectToWebSocket, hn as TooManyEmbeddingValuesForCallError, ht as postJsonToApi, in as strictObject, j as createProviderDefinedToolFactory, jt as toolCaller, k as createLanguageModelResponseMetadata, kt as stringifyWithBigIntAndCycles, l as EMBEDDING_MODEL_MAX_INPUT_BYTES_PER_CALL, ln as _coercedNumber, lt as mapReasoningToProviderEffort, m as combineHeaders, mn as InvalidResponseDataError, mt as postFormDataToApi, nn as object, on as tuple, ot as lazySchema, pn as InvalidPromptError, pt as parseProviderOptions, q as getTopLevelMediaType, rn as record, rt as isRecord, sn as union, st as loadApiKey, tn as number$1, u as StreamingToolCallTracker, ut as mediaTypeToExtension, v as convertInlineFileDataToUint8Array, vn as isJSONObject, w as createEventSourceResponseHandler, x as convertUint8ArrayToBase64, xt as resolveFullMediaType, y as convertToBase64, yt as removeUndefinedEntries, z as encodePathSegment, zt as WORKFLOW_SERIALIZE } from "./@ai-sdk/gateway+[...].mjs";
 //#region node_modules/zod/v4/classic/coerce.js
 function number(params) {
 	return _coercedNumber(ZodNumber, params);
@@ -541,6 +541,8 @@ function createGptImageEntry(sizes) {
 	};
 }
 var openaiImageModelEntries = {
+	"gpt-image-2.6-flare": createGptImageEntry(customImageSizes),
+	"gpt-image-2.6-sunburst": createGptImageEntry(customImageSizes),
 	"gpt-image-2.5-flare": createGptImageEntry(customImageSizes),
 	"gpt-image-2.5-sunburst": createGptImageEntry(customImageSizes),
 	"gpt-image-2": createGptImageEntry(gptImageSizes),
@@ -729,7 +731,7 @@ var realtimeModelEntry = {
 	capabilities: { realtime: {
 		conversation: "turn-based",
 		transports: ["websocket"],
-		connections: ["client-secret-websocket"]
+		connections: ["client-secret-websocket", "server-websocket"]
 	} },
 	requestConfig: { realtime: {
 		api: "realtime",
@@ -1001,339 +1003,6 @@ function convertOpenAIChatUsage(usage) {
 		raw: usage
 	};
 }
-function serializeToolCallArguments$1(input) {
-	if (typeof input === "string") try {
-		const parsed = secureJsonParse(input);
-		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return "{}";
-		return input;
-	} catch {
-		return "{}";
-	}
-	return stringifyWithBigIntAndCycles(typeof input === "object" && input !== null && !Array.isArray(input) ? input : {});
-}
-function getPromptCacheBreakpoint$1(providerOptions) {
-	return providerOptions?.openai?.promptCacheBreakpoint;
-}
-function convertToOpenAIChatMessages({ prompt, systemMessageMode = "system" }) {
-	const messages = [];
-	const warnings = [];
-	for (const { role, content, providerOptions } of prompt) switch (role) {
-		case "system":
-			switch (systemMessageMode) {
-				case "system": {
-					const promptCacheBreakpoint = getPromptCacheBreakpoint$1(providerOptions);
-					messages.push({
-						role: "system",
-						content: promptCacheBreakpoint == null ? content : [{
-							type: "text",
-							text: content,
-							prompt_cache_breakpoint: promptCacheBreakpoint
-						}]
-					});
-					break;
-				}
-				case "developer": {
-					const promptCacheBreakpoint = getPromptCacheBreakpoint$1(providerOptions);
-					messages.push({
-						role: "developer",
-						content: promptCacheBreakpoint == null ? content : [{
-							type: "text",
-							text: content,
-							prompt_cache_breakpoint: promptCacheBreakpoint
-						}]
-					});
-					break;
-				}
-				case "remove":
-					warnings.push({
-						type: "other",
-						message: "system messages are removed for this model"
-					});
-					break;
-				default: throw new Error(`Unsupported system message mode: ${systemMessageMode}`);
-			}
-			break;
-		case "user":
-			if (content.length === 1 && content[0].type === "text" && getPromptCacheBreakpoint$1(content[0].providerOptions) == null) {
-				messages.push({
-					role: "user",
-					content: content[0].text
-				});
-				break;
-			}
-			messages.push({
-				role: "user",
-				content: content.map((part, index) => {
-					switch (part.type) {
-						case "text": {
-							const promptCacheBreakpoint = getPromptCacheBreakpoint$1(part.providerOptions);
-							return {
-								type: "text",
-								text: part.text,
-								...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-							};
-						}
-						case "file": {
-							const promptCacheBreakpoint = getPromptCacheBreakpoint$1(part.providerOptions);
-							switch (part.data.type) {
-								case "reference": return {
-									type: "file",
-									file: { file_id: resolveProviderReference({
-										reference: part.data.reference,
-										provider: "openai"
-									}) },
-									...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-								};
-								case "text": throw new UnsupportedFunctionalityError({ functionality: "text file parts" });
-								case "url":
-								case "data": {
-									const topLevel = getTopLevelMediaType(part.mediaType);
-									if (topLevel === "image") return {
-										type: "image_url",
-										image_url: {
-											url: part.data.type === "url" ? part.data.url.toString() : `data:${resolveFullMediaType({ part })};base64,${convertToBase64(part.data.data)}`,
-											detail: part.providerOptions?.openai?.imageDetail
-										},
-										...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-									};
-									else if (topLevel === "audio") {
-										if (part.data.type === "url") throw new UnsupportedFunctionalityError({ functionality: "audio file parts with URLs" });
-										const fullMediaType = resolveFullMediaType({ part });
-										switch (fullMediaType) {
-											case "audio/wav": return {
-												type: "input_audio",
-												input_audio: {
-													data: convertToBase64(part.data.data),
-													format: "wav"
-												},
-												...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-											};
-											case "audio/mp3":
-											case "audio/mpeg": return {
-												type: "input_audio",
-												input_audio: {
-													data: convertToBase64(part.data.data),
-													format: "mp3"
-												},
-												...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-											};
-											default: throw new UnsupportedFunctionalityError({ functionality: `audio content parts with media type ${fullMediaType}` });
-										}
-									}
-									{
-										const fullMediaType = resolveFullMediaType({ part });
-										if (fullMediaType !== "application/pdf") throw new UnsupportedFunctionalityError({ functionality: `file part media type ${fullMediaType}` });
-										if (part.data.type === "url") throw new UnsupportedFunctionalityError({ functionality: "PDF file parts with URLs" });
-										return {
-											type: "file",
-											file: {
-												filename: part.filename ?? `part-${index}.pdf`,
-												file_data: `data:application/pdf;base64,${convertToBase64(part.data.data)}`
-											},
-											...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-										};
-									}
-								}
-							}
-						}
-					}
-				})
-			});
-			break;
-		case "assistant": {
-			let text = "";
-			const textParts = [];
-			let hasPromptCacheBreakpoint = false;
-			const toolCalls = [];
-			for (const part of content) switch (part.type) {
-				case "text": {
-					const promptCacheBreakpoint = getPromptCacheBreakpoint$1(part.providerOptions);
-					text += part.text;
-					textParts.push({
-						type: "text",
-						text: part.text,
-						...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
-					});
-					hasPromptCacheBreakpoint ||= promptCacheBreakpoint != null;
-					break;
-				}
-				case "tool-call": toolCalls.push({
-					id: part.toolCallId,
-					type: "function",
-					function: {
-						name: part.toolName,
-						arguments: serializeToolCallArguments$1(part.input)
-					}
-				});
-			}
-			messages.push({
-				role: "assistant",
-				content: hasPromptCacheBreakpoint ? textParts : toolCalls.length > 0 ? text || null : text,
-				tool_calls: toolCalls.length > 0 ? toolCalls : void 0
-			});
-			break;
-		}
-		case "tool":
-			for (const toolResponse of content) {
-				if (toolResponse.type === "tool-approval-response") continue;
-				const output = toolResponse.output;
-				const promptCacheBreakpoint = (output.type === "content" ? output.value.map((part) => getPromptCacheBreakpoint$1(part.providerOptions)).find((breakpoint) => breakpoint != null) : getPromptCacheBreakpoint$1(output.providerOptions)) ?? getPromptCacheBreakpoint$1(toolResponse.providerOptions);
-				let contentValue;
-				switch (output.type) {
-					case "text":
-						contentValue = output.value;
-						break;
-					case "error-text":
-					case "error-json":
-						contentValue = stringifyWithBigIntAndCycles({ error: output.value });
-						break;
-					case "execution-denied":
-						contentValue = output.reason ?? "Tool call execution denied.";
-						break;
-					case "content":
-					case "json": contentValue = stringifyWithBigIntAndCycles(output.value);
-				}
-				messages.push({
-					role: "tool",
-					tool_call_id: toolResponse.toolCallId,
-					content: promptCacheBreakpoint == null ? contentValue : [{
-						type: "text",
-						text: contentValue,
-						prompt_cache_breakpoint: promptCacheBreakpoint
-					}]
-				});
-			}
-			break;
-		default: throw new Error(`Unsupported role: ${role}`);
-	}
-	return {
-		messages,
-		warnings
-	};
-}
-function getResponseMetadata$1({ id, model, created }) {
-	return createLanguageModelResponseMetadata({
-		id,
-		model,
-		created: created || void 0
-	});
-}
-function mapOpenAIFinishReason$1(finishReason) {
-	switch (finishReason) {
-		case "stop": return "stop";
-		case "length": return "length";
-		case "content_filter": return "content-filter";
-		case "function_call":
-		case "tool_calls": return "tool-calls";
-		default: return "other";
-	}
-}
-var openaiChatResponseSchema = lazySchema(() => zodSchema(object({
-	id: string().nullish(),
-	created: number$1().nullish(),
-	model: string().nullish(),
-	choices: array(object({
-		message: object({
-			role: literal("assistant").nullish(),
-			content: string().nullish(),
-			audio: object({ transcript: string().nullish() }).nullish(),
-			tool_calls: array(object({
-				id: string().nullish(),
-				type: literal("function"),
-				function: object({
-					name: string(),
-					arguments: string()
-				})
-			})).nullish(),
-			annotations: array(object({
-				type: literal("url_citation"),
-				url_citation: object({
-					start_index: number$1(),
-					end_index: number$1(),
-					url: string(),
-					title: string()
-				})
-			})).nullish()
-		}),
-		index: number$1(),
-		logprobs: object({ content: array(object({
-			token: string(),
-			logprob: number$1(),
-			top_logprobs: array(object({
-				token: string(),
-				logprob: number$1()
-			}))
-		})).nullish() }).nullish(),
-		finish_reason: string().nullish()
-	})),
-	usage: object({
-		prompt_tokens: number$1().nullish(),
-		completion_tokens: number$1().nullish(),
-		total_tokens: number$1().nullish(),
-		prompt_tokens_details: object({
-			cached_tokens: number$1().nullish(),
-			cache_write_tokens: number$1().nullish()
-		}).nullish(),
-		completion_tokens_details: object({
-			reasoning_tokens: number$1().nullish(),
-			accepted_prediction_tokens: number$1().nullish(),
-			rejected_prediction_tokens: number$1().nullish()
-		}).nullish()
-	}).nullish()
-})));
-var openaiChatChunkSchema = lazySchema(() => zodSchema(union([object({
-	id: string().nullish(),
-	created: number$1().nullish(),
-	model: string().nullish(),
-	choices: array(object({
-		delta: object({
-			role: _enum(["assistant"]).nullish(),
-			content: string().nullish(),
-			tool_calls: array(object({
-				index: number$1(),
-				id: string().nullish(),
-				type: literal("function").nullish(),
-				function: object({
-					name: string().nullish(),
-					arguments: string().nullish()
-				})
-			})).nullish(),
-			annotations: array(object({
-				type: literal("url_citation"),
-				url_citation: object({
-					start_index: number$1(),
-					end_index: number$1(),
-					url: string(),
-					title: string()
-				})
-			})).nullish()
-		}).nullish(),
-		logprobs: object({ content: array(object({
-			token: string(),
-			logprob: number$1(),
-			top_logprobs: array(object({
-				token: string(),
-				logprob: number$1()
-			}))
-		})).nullish() }).nullish(),
-		finish_reason: string().nullish(),
-		index: number$1()
-	})),
-	usage: object({
-		prompt_tokens: number$1().nullish(),
-		completion_tokens: number$1().nullish(),
-		total_tokens: number$1().nullish(),
-		prompt_tokens_details: object({
-			cached_tokens: number$1().nullish(),
-			cache_write_tokens: number$1().nullish()
-		}).nullish(),
-		completion_tokens_details: object({
-			reasoning_tokens: number$1().nullish(),
-			accepted_prediction_tokens: number$1().nullish(),
-			rejected_prediction_tokens: number$1().nullish()
-		}).nullish()
-	}).nullish()
-}), openaiErrorDataSchema()])));
 var openaiLanguageModelChatOptions = lazySchema(() => zodSchema(object({
 	/**
 	* Modify the likelihood of specified tokens appearing in the completion.
@@ -1481,6 +1150,358 @@ var openaiLanguageModelChatOptions = lazySchema(() => zodSchema(object({
 	*/
 	forceReasoning: boolean().optional()
 })));
+var openaiChatMessageProviderOptions = lazySchema(() => zodSchema(object({ 
+/** The participant name on a system, developer, user, or assistant message. */
+name: string().optional() })));
+function serializeToolCallArguments$1(input) {
+	if (typeof input === "string") try {
+		const parsed = secureJsonParse(input);
+		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return "{}";
+		return input;
+	} catch {
+		return "{}";
+	}
+	return stringifyWithBigIntAndCycles(typeof input === "object" && input !== null && !Array.isArray(input) ? input : {});
+}
+function getPromptCacheBreakpoint$1(providerOptions) {
+	return providerOptions?.openai?.promptCacheBreakpoint;
+}
+async function convertToOpenAIChatMessages({ prompt, systemMessageMode = "system" }) {
+	const messages = [];
+	const warnings = [];
+	for (const { role, content, providerOptions } of prompt) {
+		const name = (await parseProviderOptions({
+			provider: "openai",
+			providerOptions,
+			schema: openaiChatMessageProviderOptions
+		}))?.name;
+		switch (role) {
+			case "system":
+				switch (systemMessageMode) {
+					case "system": {
+						const promptCacheBreakpoint = getPromptCacheBreakpoint$1(providerOptions);
+						messages.push({
+							role: "system",
+							...name != null && { name },
+							content: promptCacheBreakpoint == null ? content : [{
+								type: "text",
+								text: content,
+								prompt_cache_breakpoint: promptCacheBreakpoint
+							}]
+						});
+						break;
+					}
+					case "developer": {
+						const promptCacheBreakpoint = getPromptCacheBreakpoint$1(providerOptions);
+						messages.push({
+							role: "developer",
+							...name != null && { name },
+							content: promptCacheBreakpoint == null ? content : [{
+								type: "text",
+								text: content,
+								prompt_cache_breakpoint: promptCacheBreakpoint
+							}]
+						});
+						break;
+					}
+					case "remove":
+						warnings.push({
+							type: "other",
+							message: "system messages are removed for this model"
+						});
+						break;
+					default: throw new Error(`Unsupported system message mode: ${systemMessageMode}`);
+				}
+				break;
+			case "user":
+				if (content.length === 1 && content[0].type === "text" && getPromptCacheBreakpoint$1(content[0].providerOptions) == null) {
+					messages.push({
+						role: "user",
+						content: content[0].text,
+						...name != null && { name }
+					});
+					break;
+				}
+				messages.push({
+					role: "user",
+					...name != null && { name },
+					content: content.map((part, index) => {
+						switch (part.type) {
+							case "text": {
+								const promptCacheBreakpoint = getPromptCacheBreakpoint$1(part.providerOptions);
+								return {
+									type: "text",
+									text: part.text,
+									...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+								};
+							}
+							case "file": {
+								const promptCacheBreakpoint = getPromptCacheBreakpoint$1(part.providerOptions);
+								switch (part.data.type) {
+									case "reference": return {
+										type: "file",
+										file: { file_id: resolveProviderReference({
+											reference: part.data.reference,
+											provider: "openai"
+										}) },
+										...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+									};
+									case "text": throw new UnsupportedFunctionalityError({ functionality: "text file parts" });
+									case "url":
+									case "data": {
+										const topLevel = getTopLevelMediaType(part.mediaType);
+										if (topLevel === "image") return {
+											type: "image_url",
+											image_url: {
+												url: part.data.type === "url" ? part.data.url.toString() : `data:${resolveFullMediaType({ part })};base64,${convertToBase64(part.data.data)}`,
+												detail: part.providerOptions?.openai?.imageDetail
+											},
+											...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+										};
+										else if (topLevel === "audio") {
+											if (part.data.type === "url") throw new UnsupportedFunctionalityError({ functionality: "audio file parts with URLs" });
+											const fullMediaType = resolveFullMediaType({ part });
+											switch (fullMediaType) {
+												case "audio/wav": return {
+													type: "input_audio",
+													input_audio: {
+														data: convertToBase64(part.data.data),
+														format: "wav"
+													},
+													...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+												};
+												case "audio/mp3":
+												case "audio/mpeg": return {
+													type: "input_audio",
+													input_audio: {
+														data: convertToBase64(part.data.data),
+														format: "mp3"
+													},
+													...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+												};
+												default: throw new UnsupportedFunctionalityError({ functionality: `audio content parts with media type ${fullMediaType}` });
+											}
+										}
+										{
+											const fullMediaType = resolveFullMediaType({ part });
+											if (fullMediaType !== "application/pdf") throw new UnsupportedFunctionalityError({ functionality: `file part media type ${fullMediaType}` });
+											if (part.data.type === "url") throw new UnsupportedFunctionalityError({ functionality: "PDF file parts with URLs" });
+											return {
+												type: "file",
+												file: {
+													filename: part.filename ?? `part-${index}.pdf`,
+													file_data: `data:application/pdf;base64,${convertToBase64(part.data.data)}`
+												},
+												...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+											};
+										}
+									}
+								}
+							}
+						}
+					})
+				});
+				break;
+			case "assistant": {
+				let text = "";
+				const textParts = [];
+				let hasPromptCacheBreakpoint = false;
+				const toolCalls = [];
+				for (const part of content) switch (part.type) {
+					case "text": {
+						const promptCacheBreakpoint = getPromptCacheBreakpoint$1(part.providerOptions);
+						text += part.text;
+						textParts.push({
+							type: "text",
+							text: part.text,
+							...promptCacheBreakpoint != null && { prompt_cache_breakpoint: promptCacheBreakpoint }
+						});
+						hasPromptCacheBreakpoint ||= promptCacheBreakpoint != null;
+						break;
+					}
+					case "tool-call": toolCalls.push({
+						id: part.toolCallId,
+						type: "function",
+						function: {
+							name: part.toolName,
+							arguments: serializeToolCallArguments$1(part.input)
+						}
+					});
+				}
+				messages.push({
+					role: "assistant",
+					...name != null && { name },
+					content: hasPromptCacheBreakpoint ? textParts : toolCalls.length > 0 ? text || null : text,
+					tool_calls: toolCalls.length > 0 ? toolCalls : void 0
+				});
+				break;
+			}
+			case "tool":
+				if (name != null) warnings.push({
+					type: "unsupported",
+					feature: "message name on tool messages"
+				});
+				for (const toolResponse of content) {
+					if (toolResponse.type === "tool-approval-response") continue;
+					const output = toolResponse.output;
+					const promptCacheBreakpoint = (output.type === "content" ? output.value.map((part) => getPromptCacheBreakpoint$1(part.providerOptions)).find((breakpoint) => breakpoint != null) : getPromptCacheBreakpoint$1(output.providerOptions)) ?? getPromptCacheBreakpoint$1(toolResponse.providerOptions);
+					let contentValue;
+					switch (output.type) {
+						case "text":
+							contentValue = output.value;
+							break;
+						case "error-text":
+						case "error-json":
+							contentValue = stringifyWithBigIntAndCycles({ error: output.value });
+							break;
+						case "execution-denied":
+							contentValue = output.reason ?? "Tool call execution denied.";
+							break;
+						case "content":
+						case "json": contentValue = stringifyWithBigIntAndCycles(output.value);
+					}
+					messages.push({
+						role: "tool",
+						tool_call_id: toolResponse.toolCallId,
+						content: promptCacheBreakpoint == null ? contentValue : [{
+							type: "text",
+							text: contentValue,
+							prompt_cache_breakpoint: promptCacheBreakpoint
+						}]
+					});
+				}
+				break;
+			default: throw new Error(`Unsupported role: ${role}`);
+		}
+	}
+	return {
+		messages,
+		warnings
+	};
+}
+function getResponseMetadata$1({ id, model, created }) {
+	return createLanguageModelResponseMetadata({
+		id,
+		model,
+		created: created || void 0
+	});
+}
+function mapOpenAIFinishReason$1(finishReason) {
+	switch (finishReason) {
+		case "stop": return "stop";
+		case "length": return "length";
+		case "content_filter": return "content-filter";
+		case "function_call":
+		case "tool_calls": return "tool-calls";
+		default: return "other";
+	}
+}
+var openaiChatResponseSchema = lazySchema(() => zodSchema(object({
+	id: string().nullish(),
+	created: number$1().nullish(),
+	model: string().nullish(),
+	choices: array(object({
+		message: object({
+			role: literal("assistant").nullish(),
+			content: string().nullish(),
+			audio: object({ transcript: string().nullish() }).nullish(),
+			tool_calls: array(object({
+				id: string().nullish(),
+				type: literal("function"),
+				function: object({
+					name: string(),
+					arguments: string()
+				})
+			})).nullish(),
+			annotations: array(object({
+				type: literal("url_citation"),
+				url_citation: object({
+					start_index: number$1(),
+					end_index: number$1(),
+					url: string(),
+					title: string()
+				})
+			})).nullish()
+		}),
+		index: number$1(),
+		logprobs: object({ content: array(object({
+			token: string(),
+			logprob: number$1(),
+			top_logprobs: array(object({
+				token: string(),
+				logprob: number$1()
+			}))
+		})).nullish() }).nullish(),
+		finish_reason: string().nullish()
+	})),
+	usage: object({
+		prompt_tokens: number$1().nullish(),
+		completion_tokens: number$1().nullish(),
+		total_tokens: number$1().nullish(),
+		prompt_tokens_details: object({
+			cached_tokens: number$1().nullish(),
+			cache_write_tokens: number$1().nullish()
+		}).nullish(),
+		completion_tokens_details: object({
+			reasoning_tokens: number$1().nullish(),
+			accepted_prediction_tokens: number$1().nullish(),
+			rejected_prediction_tokens: number$1().nullish()
+		}).nullish()
+	}).nullish()
+})));
+var openaiChatChunkSchema = lazySchema(() => zodSchema(union([object({
+	id: string().nullish(),
+	created: number$1().nullish(),
+	model: string().nullish(),
+	choices: array(object({
+		delta: object({
+			role: _enum(["assistant"]).nullish(),
+			content: string().nullish(),
+			tool_calls: array(object({
+				index: number$1(),
+				id: string().nullish(),
+				type: literal("function").nullish(),
+				function: object({
+					name: string().nullish(),
+					arguments: string().nullish()
+				})
+			})).nullish(),
+			annotations: array(object({
+				type: literal("url_citation"),
+				url_citation: object({
+					start_index: number$1(),
+					end_index: number$1(),
+					url: string(),
+					title: string()
+				})
+			})).nullish()
+		}).nullish(),
+		logprobs: object({ content: array(object({
+			token: string(),
+			logprob: number$1(),
+			top_logprobs: array(object({
+				token: string(),
+				logprob: number$1()
+			}))
+		})).nullish() }).nullish(),
+		finish_reason: string().nullish(),
+		index: number$1()
+	})),
+	usage: object({
+		prompt_tokens: number$1().nullish(),
+		completion_tokens: number$1().nullish(),
+		total_tokens: number$1().nullish(),
+		prompt_tokens_details: object({
+			cached_tokens: number$1().nullish(),
+			cache_write_tokens: number$1().nullish()
+		}).nullish(),
+		completion_tokens_details: object({
+			reasoning_tokens: number$1().nullish(),
+			accepted_prediction_tokens: number$1().nullish(),
+			rejected_prediction_tokens: number$1().nullish()
+		}).nullish()
+	}).nullish()
+}), openaiErrorDataSchema()])));
 /**
 * Normalizes JSON Schema for OpenAI structured outputs.
 *
@@ -1714,7 +1735,7 @@ var OpenAIChatLanguageModel = class OpenAIChatLanguageModel {
 			feature: "reasoningSummary",
 			details: "reasoningSummary is only supported by the Responses API, not the Chat Completions API"
 		});
-		const { messages, warnings: messageWarnings } = convertToOpenAIChatMessages({
+		const { messages, warnings: messageWarnings } = await convertToOpenAIChatMessages({
 			prompt,
 			systemMessageMode: openaiOptions.systemMessageMode ?? (isReasoningModel ? "developer" : modelRequestConfig.systemMessageMode)
 		});
@@ -1867,11 +1888,12 @@ var OpenAIChatLanguageModel = class OpenAIChatLanguageModel {
 	}
 	async doGenerate(options) {
 		const { args: body, warnings } = await this.getArgs(options);
+		const url = this.config.url({
+			path: "/chat/completions",
+			modelId: this.config.requestModelId ?? this.modelId
+		});
 		const { responseHeaders, value: response, rawValue: rawResponse } = await postJsonToApi({
-			url: this.config.url({
-				path: "/chat/completions",
-				modelId: this.config.requestModelId ?? this.modelId
-			}),
+			url,
 			headers: combineHeaders(await resolve(this.config.headers), options.headers),
 			body,
 			failedResponseHandler: openaiFailedResponseHandler,
@@ -1915,7 +1937,10 @@ var OpenAIChatLanguageModel = class OpenAIChatLanguageModel {
 				raw: choice.finish_reason ?? void 0
 			},
 			usage: convertOpenAIChatUsage(response.usage),
-			request: { body },
+			request: {
+				body,
+				url
+			},
 			response: {
 				...getResponseMetadata$1(response),
 				headers: responseHeaders,
@@ -2062,7 +2087,10 @@ var OpenAIChatLanguageModel = class OpenAIChatLanguageModel {
 					});
 				}
 			})),
-			request: { body },
+			request: {
+				body,
+				url
+			},
 			response: { headers: responseHeaders }
 		};
 	}
@@ -2773,6 +2801,15 @@ var baseImageModelOptionsObject = () => object({
 		"webp"
 	]).optional(),
 	/**
+	* How much detail the model puts into the image. Supported by GPT Image
+	* 2.6 models. The API defaults to `high`.
+	*/
+	complexity: _enum([
+		"low",
+		"medium",
+		"high"
+	]).optional(),
+	/**
 	* Compression level (0-100) for the generated image(s). Applies to the
 	* `jpeg` and `webp` output formats.
 	*/
@@ -2781,7 +2818,13 @@ var baseImageModelOptionsObject = () => object({
 	* A unique identifier representing your end-user, which can help OpenAI
 	* to monitor and detect abuse.
 	*/
-	user: string().optional()
+	user: string().optional(),
+	/**
+	* A stable identifier used to help detect users of your application that
+	* may be violating OpenAI's usage policies. Should be a hashed username
+	* or email address.
+	*/
+	safetyIdentifier: string().max(128).optional()
 });
 lazySchema(() => zodSchema(baseImageModelOptionsObject()));
 var openaiImageModelGenerationOptions = lazySchema(() => zodSchema(baseImageModelOptionsObject().extend({
@@ -2792,16 +2835,50 @@ var openaiImageModelGenerationOptions = lazySchema(() => zodSchema(baseImageMode
 	*/
 	style: _enum(["vivid", "natural"]).optional(),
 	/**
+	* Format in which the generated image(s) are returned. `gif` produces
+	* an animated GIF and is supported by GPT Image 2.6 models.
+	*/
+	outputFormat: _enum([
+		"png",
+		"jpeg",
+		"webp",
+		"gif"
+	]).optional(),
+	/**
+	* Number of frames (2-64) of an animated GIF. Only applies to the `gif`
+	* output format. The API defaults to 9.
+	*/
+	frameCount: number$1().int().min(2).max(64).optional(),
+	/**
+	* Duration of each frame in milliseconds (20-2000) of an animated GIF.
+	* The API rounds it to the nearest 10 ms. Only applies to the `gif`
+	* output format. The API defaults to 200.
+	*/
+	frameDurationMs: number$1().int().min(20).max(2e3).optional(),
+	/**
 	* Content moderation level for the generated image(s). `low` applies
 	* less restrictive filtering.
 	*/
 	moderation: _enum(["auto", "low"]).optional()
 })));
-var openaiImageModelEditOptions = lazySchema(() => zodSchema(baseImageModelOptionsObject().extend({ 
-/**
-* Fidelity of the output image(s) to the input image(s).
-*/
-inputFidelity: _enum(["high", "low"]).optional() })));
+var openaiImageModelEditOptions = lazySchema(() => zodSchema(baseImageModelOptionsObject().extend({
+	/**
+	* Fidelity of the output image(s) to the input image(s).
+	*/
+	inputFidelity: _enum(["high", "low"]).optional(),
+	/**
+	* A transparent PNG overlaid on the first input image to mark up the
+	* regions to change, as an HTTPS URL or a base64 data URL. It must match
+	* the dimensions of the first image. Supported by GPT Image 2.5 and 2.6
+	* models. Cannot be combined with a `mask`.
+	*/
+	markup: string().optional(),
+	/**
+	* Content moderation level for the edited image(s). `low` applies
+	* less restrictive filtering. Supported by GPT Image models.
+	*/
+	moderation: _enum(["auto", "low"]).optional()
+})));
 var OpenAIImageModel = class OpenAIImageModel {
 	static [WORKFLOW_SERIALIZE](model) {
 		return serializeModelOptions({
@@ -2851,6 +2928,10 @@ var OpenAIImageModel = class OpenAIImageModel {
 				providerOptions,
 				schema: openaiImageModelEditOptions
 			}) ?? {};
+			if (mask != null && openaiOptions.markup != null) throw new InvalidArgumentError({
+				argument: "providerOptions.openai.markup",
+				message: "`markup` cannot be combined with `mask`."
+			});
 			const { value: response, responseHeaders } = await postFormDataToApi({
 				url: this.config.url({
 					path: "/images/edits",
@@ -2862,14 +2943,18 @@ var OpenAIImageModel = class OpenAIImageModel {
 					prompt,
 					image: await Promise.all(files.map((file) => file.type === "file" ? new Blob([file.data instanceof Uint8Array ? new Blob([file.data], { type: file.mediaType }) : new Blob([convertBase64ToUint8Array(file.data)], { type: file.mediaType })], { type: file.mediaType }) : downloadBlob(file.url, { abortSignal }))),
 					mask: mask != null ? await fileToBlob(mask, abortSignal) : void 0,
+					markup: openaiOptions.markup != null ? await markupToBlob(openaiOptions.markup, abortSignal) : void 0,
 					n,
 					size,
 					quality: openaiOptions.quality,
 					background: openaiOptions.background,
 					output_format: openaiOptions.outputFormat,
 					output_compression: openaiOptions.outputCompression,
+					complexity: openaiOptions.complexity,
 					input_fidelity: openaiOptions.inputFidelity,
-					user: openaiOptions.user
+					moderation: openaiOptions.moderation,
+					user: openaiOptions.user,
+					safety_identifier: openaiOptions.safetyIdentifier
 				}),
 				failedResponseHandler: openaiFailedResponseHandler,
 				successfulResponseHandler: createJsonResponseHandler(openaiImageResponseSchema),
@@ -2922,7 +3007,11 @@ var OpenAIImageModel = class OpenAIImageModel {
 				moderation: openaiOptions.moderation,
 				output_format: openaiOptions.outputFormat,
 				output_compression: openaiOptions.outputCompression,
+				complexity: openaiOptions.complexity,
+				frame_count: openaiOptions.frameCount,
+				frame_duration_ms: openaiOptions.frameDurationMs,
 				user: openaiOptions.user,
+				safety_identifier: openaiOptions.safetyIdentifier,
 				...!hasDefaultResponseFormat(this.modelId) ? { response_format: "b64_json" } : {}
 			},
 			failedResponseHandler: openaiFailedResponseHandler,
@@ -2974,6 +3063,15 @@ function distributeTokenDetails(details, index, total) {
 		result.textTokens = index === total - 1 ? remainder : base;
 	}
 	return result;
+}
+async function markupToBlob(markup, abortSignal) {
+	const dataUrl = /^data:([^;,]*)(;base64)?,(.*)$/s.exec(markup);
+	if (dataUrl == null) return downloadBlob(markup, { abortSignal });
+	if (dataUrl[2] == null) throw new InvalidArgumentError({
+		argument: "providerOptions.openai.markup",
+		message: "`markup` data URLs must be base64 encoded."
+	});
+	return new Blob([convertBase64ToUint8Array(dataUrl[3])], { type: dataUrl[1] || "image/png" });
 }
 async function fileToBlob(file, abortSignal) {
 	if (!file) return void 0;
@@ -3036,7 +3134,24 @@ var codeInterpreterOutputSchema = lazySchema(() => zodSchema(object({ outputs: a
 	type: literal("image"),
 	url: string()
 })])).nullish() })));
-var codeInterpreterArgsSchema = lazySchema(() => zodSchema(object({ container: union([string(), object({ fileIds: array(string()).optional() })]).optional() })));
+var codeInterpreterArgsSchema = lazySchema(() => zodSchema(object({ container: union([string(), object({
+	fileIds: array(string()).optional(),
+	memoryLimit: _enum([
+		"1g",
+		"4g",
+		"16g",
+		"64g"
+	]).optional(),
+	networkPolicy: discriminatedUnion("type", [object({ type: literal("disabled") }), object({
+		type: literal("allowlist"),
+		allowedDomains: array(string()),
+		domainSecrets: array(object({
+			domain: string(),
+			name: string(),
+			value: string()
+		})).optional()
+	})]).optional()
+})]).optional() })));
 var codeInterpreterToolFactory = createProviderExecutedToolFactory({
 	id: "openai.code_interpreter",
 	inputSchema: codeInterpreterInputSchema,
@@ -3460,8 +3575,9 @@ var mcpArgsSchema = lazySchema(() => zodSchema(object({
 	headers: record(string(), string()).optional(),
 	requireApproval: union([_enum(["always", "never"]), object({ never: object({ toolNames: array(string()).optional() }).optional() })]).optional(),
 	serverDescription: string().optional(),
-	serverUrl: string().optional()
-}).refine((v) => v.serverUrl != null || v.connectorId != null, "One of serverUrl or connectorId must be provided.")));
+	serverUrl: string().optional(),
+	tunnelId: string().optional()
+}).refine((v) => v.serverUrl != null || v.connectorId != null || v.tunnelId != null, "One of serverUrl, connectorId, or tunnelId must be provided.").refine((v) => v.tunnelId == null || v.serverUrl == null && v.connectorId == null, "tunnelId cannot be combined with serverUrl or connectorId.")));
 var mcpInputSchema = lazySchema(() => zodSchema(object({})));
 var mcpOutputSchema = lazySchema(() => zodSchema(object({
 	type: literal("call"),
@@ -3608,16 +3724,17 @@ var openaiTools = {
 	webSearch,
 	/**
 	* MCP (Model Context Protocol) allows models to call tools exposed by
-	* remote MCP servers or service connectors.
+	* remote MCP servers, service connectors, or Secure MCP tunnels.
 	*
 	* @param serverLabel - Label to identify the MCP server.
 	* @param allowedTools - Allowed tool names or filter object.
-	* @param authorization - OAuth access token for the MCP server/connector.
+	* @param authorization - OAuth access token for the MCP server or connector (including tunneled servers).
 	* @param connectorId - Identifier for a service connector.
 	* @param headers - Optional headers to include in MCP requests.
-	* // param requireApproval - Approval policy ('always'|'never'|filter object). (Removed - always 'never')
+	* @param requireApproval - Approval policy ('always'|'never'|filter object).
 	* @param serverDescription - Optional description of the server.
 	* @param serverUrl - URL for the MCP server.
+	* @param tunnelId - Identifier for an OpenAI Secure MCP tunnel.
 	*/
 	mcp,
 	/**
@@ -6263,7 +6380,13 @@ async function prepareResponsesTools({ tools, toolChoice, allowedTools, toolName
 							file_ids: void 0
 						} : typeof args.container === "string" ? args.container : {
 							type: "auto",
-							file_ids: args.container.fileIds
+							file_ids: args.container.fileIds,
+							memory_limit: args.container.memoryLimit,
+							network_policy: args.container.networkPolicy == null ? void 0 : args.container.networkPolicy.type === "disabled" ? { type: "disabled" } : {
+								type: "allowlist",
+								allowed_domains: args.container.networkPolicy.allowedDomains,
+								domain_secrets: args.container.networkPolicy.domainSecrets
+							}
 						}
 					});
 					break;
@@ -6312,7 +6435,8 @@ async function prepareResponsesTools({ tools, toolChoice, allowedTools, toolName
 						headers: args.headers,
 						require_approval: requireApprovalParam ?? "never",
 						server_description: args.serverDescription,
-						server_url: args.serverUrl
+						server_url: args.serverUrl,
+						tunnel_id: args.tunnelId
 					});
 					break;
 				}
@@ -9365,7 +9489,8 @@ var OpenAIRealtimeModelLive = class {
 	getWebRTCConfig() {
 		return { dataChannelLabel: "oai-events" };
 	}
-	getServerWebSocketConfig() {
+	getServerWebSocketConfig(options) {
+		this.assertConversationIntent(options);
 		return resolveWith(this.config.headers, (configHeaders) => {
 			const url = new URL(`${this.config.baseURL}/live/sessions`);
 			url.protocol = url.protocol === "http:" ? "ws:" : "wss:";
@@ -9405,10 +9530,15 @@ var OpenAIRealtimeModelLive = class {
 	createServerEventParser() {
 		return createOpenAILiveServerEventParser();
 	}
-	serializeClientEvent(event) {
+	assertConversationIntent(options) {
+		if (options?.intent != null && options.intent !== "conversation") throw new Error(`OpenAI Live session intent '${options.intent}' is not supported.`);
+	}
+	serializeClientEvent(event, options) {
+		this.assertConversationIntent(options);
 		return serializeOpenAILiveClientEvent(event, this.modelId);
 	}
-	buildSessionConfig(config) {
+	buildSessionConfig(config, options) {
+		this.assertConversationIntent(options);
 		return buildOpenAILiveSessionConfig(config, this.modelId);
 	}
 };
@@ -9450,23 +9580,31 @@ function parseOpenAIRealtimeServerEvent(raw) {
 			item: event.item,
 			raw
 		};
-		case "conversation.item.input_audio_transcription.completed": return {
-			type: "input-transcription-completed",
-			itemId: event.item_id,
-			transcript: event.transcript ?? "",
-			raw
-		};
+		case "conversation.item.input_audio_transcription.completed": {
+			const usage = mapTranscriptionUsage(event.usage);
+			return {
+				type: "input-transcription-completed",
+				itemId: event.item_id,
+				transcript: event.transcript ?? "",
+				...usage != null ? { usage } : {},
+				raw
+			};
+		}
 		case "response.created": return {
 			type: "response-created",
 			responseId: event.response?.id ?? event.response_id,
 			raw
 		};
-		case "response.done": return {
-			type: "response-done",
-			responseId: event.response?.id ?? event.response_id,
-			status: event.response?.status ?? "completed",
-			raw
-		};
+		case "response.done": {
+			const usage = mapResponseUsage(event.response?.usage);
+			return {
+				type: "response-done",
+				responseId: event.response?.id ?? event.response_id,
+				status: event.response?.status ?? "completed",
+				...usage != null ? { usage } : {},
+				raw
+			};
+		}
 		case "response.output_item.added": return {
 			type: "output-item-added",
 			responseId: event.response_id,
@@ -9564,13 +9702,60 @@ function parseOpenAIRealtimeServerEvent(raw) {
 	}
 }
 /**
+* Maps OpenAI realtime `response.done` usage to normalized usage.
+*
+* Input buckets are reported gross (cache-inclusive) with the cached portion
+* surfaced separately, so consumers can apply their own cached-vs-uncached
+* billing split without re-reading `raw`.
+*/
+function mapResponseUsage(usage) {
+	if (usage == null) return void 0;
+	const input = usage.input_token_details;
+	const output = usage.output_token_details;
+	const cached = input?.cached_tokens_details;
+	return compactUsage({
+		inputTokens: usage.input_tokens,
+		outputTokens: usage.output_tokens,
+		cachedInputTokens: input?.cached_tokens,
+		inputAudioTokens: input?.audio_tokens,
+		inputTextTokens: input?.text_tokens,
+		outputAudioTokens: output?.audio_tokens,
+		outputTextTokens: output?.text_tokens,
+		cachedInputAudioTokens: cached?.audio_tokens,
+		cachedInputTextTokens: cached?.text_tokens
+	});
+}
+/**
+* Maps OpenAI realtime transcription-completed usage to normalized usage.
+* Duration-billed transcription reports `seconds`; token-billed reports tokens.
+*/
+function mapTranscriptionUsage(usage) {
+	if (usage == null) return void 0;
+	if (usage.type === "duration") return usage.seconds != null ? { seconds: usage.seconds } : void 0;
+	const input = usage.input_token_details;
+	return compactUsage({
+		inputTokens: usage.input_tokens,
+		outputTokens: usage.output_tokens,
+		inputAudioTokens: input?.audio_tokens,
+		inputTextTokens: input?.text_tokens,
+		outputTextTokens: usage.output_tokens
+	});
+}
+/** Drop `undefined` fields; return `undefined` when nothing is observable. */
+function compactUsage(usage) {
+	const result = {};
+	for (const [key, value] of Object.entries(usage)) if (value != null) result[key] = value;
+	return Object.keys(result).length > 0 ? result : void 0;
+}
+/**
 * Serializes a normalized client event into OpenAI's Realtime API format.
 */
-function serializeOpenAIRealtimeClientEvent(event, modelId) {
+function serializeOpenAIRealtimeClientEvent(event, modelId, options) {
+	assertSupportedOpenAIIntent(options?.intent);
 	switch (event.type) {
 		case "session-update": return {
 			type: "session.update",
-			session: buildOpenAISessionConfig(event.config, modelId),
+			session: buildOpenAISessionConfig(event.config, modelId, options),
 			...event.eventId != null ? { event_id: event.eventId } : {}
 		};
 		case "input-audio-append": return {
@@ -9636,15 +9821,27 @@ function serializeOpenAIRealtimeClientEvent(event, modelId) {
 /**
 * Builds an OpenAI-specific session configuration from a normalized config.
 */
-function buildOpenAISessionConfig(config, modelId) {
+function buildOpenAISessionConfig(config, modelId, options) {
+	const intent = options?.intent ?? "conversation";
+	assertSupportedOpenAIIntent(intent);
+	if (intent === "transcription") {
+		for (const key of [
+			"instructions",
+			"voice",
+			"outputModalities",
+			"outputAudioFormat",
+			"outputAudioTranscription",
+			"tools"
+		]) if (config[key] != null) throw new Error(`OpenAI realtime transcription sessions do not support '${key}'.`);
+	}
 	const session = {
-		type: "realtime",
-		model: modelId
+		type: intent === "transcription" ? "transcription" : "realtime",
+		...intent === "conversation" ? { model: modelId } : {}
 	};
-	if (config.instructions != null) session.instructions = config.instructions;
-	if (config.outputModalities != null) session.output_modalities = config.outputModalities;
+	if (intent === "conversation" && config.instructions != null) session.instructions = config.instructions;
+	if (intent === "conversation" && config.outputModalities != null) session.output_modalities = config.outputModalities;
 	const audio = {};
-	if (config.inputAudioFormat != null || config.inputAudioTranscription != null || config.turnDetection != null) {
+	if (intent === "transcription" || config.inputAudioFormat != null || config.inputAudioTranscription != null || config.turnDetection != null) {
 		const input = {};
 		if (config.inputAudioFormat != null) input.format = {
 			type: config.inputAudioFormat.type,
@@ -9658,14 +9855,19 @@ function buildOpenAISessionConfig(config, modelId) {
 			if (config.turnDetection.prefixPaddingMs != null) td.prefix_padding_ms = config.turnDetection.prefixPaddingMs;
 			input.turn_detection = td;
 		}
-		if (config.inputAudioTranscription != null) input.transcription = {
+		if (intent === "transcription") input.transcription = {
+			model: config.inputAudioTranscription?.model ?? modelId,
+			...config.inputAudioTranscription?.language != null ? { language: config.inputAudioTranscription.language } : {},
+			...config.inputAudioTranscription?.prompt != null ? { prompt: config.inputAudioTranscription.prompt } : {}
+		};
+		else if (config.inputAudioTranscription != null) input.transcription = {
 			model: config.inputAudioTranscription.model ?? "gpt-realtime-whisper",
 			...config.inputAudioTranscription.language != null ? { language: config.inputAudioTranscription.language } : {},
 			...config.inputAudioTranscription.prompt != null ? { prompt: config.inputAudioTranscription.prompt } : {}
 		};
 		audio.input = input;
 	}
-	if (config.outputAudioFormat != null || config.voice != null) {
+	if (intent === "conversation" && (config.outputAudioFormat != null || config.voice != null)) {
 		const output = {};
 		if (config.outputAudioFormat != null) output.format = {
 			type: config.outputAudioFormat.type,
@@ -9675,7 +9877,7 @@ function buildOpenAISessionConfig(config, modelId) {
 		audio.output = output;
 	}
 	if (Object.keys(audio).length > 0) session.audio = audio;
-	if (config.tools != null && config.tools.length > 0) {
+	if (intent === "conversation" && config.tools != null && config.tools.length > 0) {
 		session.tools = config.tools.map((tool) => ({
 			type: tool.type,
 			name: tool.name,
@@ -9687,9 +9889,17 @@ function buildOpenAISessionConfig(config, modelId) {
 	if (config.providerOptions != null) Object.assign(session, config.providerOptions);
 	return session;
 }
+function assertSupportedOpenAIIntent(intent) {
+	if (intent != null && intent !== "conversation" && intent !== "transcription") throw new Error(`OpenAI realtime session intent '${intent}' is not supported.`);
+}
 var OpenAIRealtimeModel = class {
 	constructor(modelId, config) {
 		this.specificationVersion = "v4";
+		this.capabilities = {
+			conversation: "turn-based",
+			transports: ["websocket"],
+			connections: ["client-secret-websocket", "server-websocket"]
+		};
 		this.modelId = modelId;
 		this.provider = config.provider;
 		this.config = config;
@@ -9732,16 +9942,36 @@ var OpenAIRealtimeModel = class {
 			protocols: ["realtime", `openai-insecure-api-key.${options.token}`]
 		};
 	}
+	getServerWebSocketConfig(options) {
+		return resolveWith(this.config.headers, (headers) => ({
+			url: buildServerUrl(this.config.baseURL, this.modelId, options?.intent ?? "conversation"),
+			headers: removeUndefinedEntries(headers)
+		}));
+	}
 	parseServerEvent(raw) {
 		return parseOpenAIRealtimeServerEvent(raw);
 	}
-	serializeClientEvent(event) {
-		return serializeOpenAIRealtimeClientEvent(event, this.modelId);
+	serializeClientEvent(event, options) {
+		return serializeOpenAIRealtimeClientEvent(event, this.modelId, options);
 	}
-	buildSessionConfig(config) {
-		return buildOpenAISessionConfig(config, this.modelId);
+	buildSessionConfig(config, options) {
+		return buildOpenAISessionConfig(config, this.modelId, options);
 	}
 };
+/**
+* Builds the upstream realtime WebSocket URL for a server-initiated connection.
+* Transcription keeps the model in `session.update`; a `?model=` here would
+* open a voice session instead.
+*/
+function buildServerUrl(baseURL, modelId, intent) {
+	const url = new URL(baseURL);
+	const base = `${url.protocol === "http:" ? "ws:" : "wss:"}//${url.host}${url.pathname.replace(/\/$/, "")}`;
+	switch (intent) {
+		case "transcription": return `${base}/realtime?intent=transcription`;
+		case "conversation": return `${base}/realtime?model=${encodeURIComponent(modelId)}`;
+		default: throw new Error(`OpenAI realtime session intent '${intent}' is not supported.`);
+	}
+}
 function resolveRealtimeApi(modelId, { api } = {}) {
 	if (api !== void 0) {
 		if (api !== "live" && api !== "realtime") throw new InvalidArgumentError({
@@ -10054,7 +10284,7 @@ var OpenAITranscriptionModel = class OpenAITranscriptionModel {
 		this.config = config;
 		this.specificationVersion = "v4";
 	}
-	async getArgs({ audio, mediaType, providerOptions }) {
+	async getArgs({ audio, mediaType, providerOptions, timestampGranularities: requestedTimestampGranularities }) {
 		const warnings = [];
 		const openAIOptions = await parseProviderOptions({
 			provider: "openai",
@@ -10068,7 +10298,17 @@ var OpenAITranscriptionModel = class OpenAITranscriptionModel {
 		formData.append("file", new File([blob], "audio", { type: mediaType }), `audio.${fileExtension}`);
 		const { transcription: requestConfig } = getOpenAITranscriptionModelEntry(this.modelId).requestConfig;
 		const responseFormat = openAIOptions?.responseFormat ?? requestConfig.responseFormat;
-		const timestampGranularities = openAIOptions?.timestampGranularities ?? (responseFormat === "verbose_json" ? ["segment"] : void 0);
+		const timestampGranularities = openAIOptions?.timestampGranularities ?? requestedTimestampGranularities ?? (responseFormat === "verbose_json" ? ["segment"] : void 0);
+		for (const granularity of requestedTimestampGranularities ?? []) if (openAIOptions?.timestampGranularities != null && !openAIOptions.timestampGranularities.includes(granularity)) warnings.push({
+			type: "unsupported",
+			feature: "timestampGranularities",
+			details: `The "${granularity}" timestamp granularity is excluded by providerOptions.openai.timestampGranularities.`
+		});
+		for (const granularity of timestampGranularities ?? []) if (responseFormat !== "verbose_json" && !(responseFormat === "diarized_json" && granularity === "segment")) warnings.push({
+			type: "unsupported",
+			feature: openAIOptions?.timestampGranularities != null ? "providerOptions.openai.timestampGranularities" : "timestampGranularities",
+			details: `OpenAI transcription with the ${responseFormat ?? "default JSON"} response format does not support ${granularity} timestamps.`
+		});
 		const chunkingStrategy = openAIOptions?.chunkingStrategy ?? requestConfig.chunkingStrategy;
 		const transcriptionModelOptions = {
 			response_format: responseFormat,
@@ -10078,7 +10318,7 @@ var OpenAITranscriptionModel = class OpenAITranscriptionModel {
 			keywords: openAIOptions?.keywords,
 			prompt: openAIOptions?.prompt,
 			temperature: openAIOptions?.temperature,
-			timestamp_granularities: timestampGranularities
+			timestamp_granularities: responseFormat === "verbose_json" ? timestampGranularities : void 0
 		};
 		for (const [key, value] of Object.entries(transcriptionModelOptions)) if (value != null) if (Array.isArray(value)) for (const item of value) formData.append(`${key}[]`, String(item));
 		else formData.append(key, String(value));
@@ -10116,17 +10356,19 @@ var OpenAITranscriptionModel = class OpenAITranscriptionModel {
 			endSecond: segment.end,
 			speaker: segment.speaker
 		}] : []);
+		const words = response.words?.map((word) => ({
+			text: word.word,
+			startSecond: word.start,
+			endSecond: word.end
+		}));
 		return {
 			text: response.text,
 			segments: response.segments?.map((segment) => ({
 				text: segment.text,
 				startSecond: segment.start,
 				endSecond: segment.end
-			})) ?? response.words?.map((word) => ({
-				text: word.word,
-				startSecond: word.start,
-				endSecond: word.end
-			})) ?? [],
+			})) ?? words ?? [],
+			...words != null && words.length > 0 ? { words } : {},
 			language,
 			durationInSeconds: response.duration ?? (response.usage?.type === "duration" && typeof response.usage.seconds === "number" ? response.usage.seconds : void 0),
 			warnings,
@@ -10629,7 +10871,7 @@ var OpenAISkills = class {
 		};
 	}
 };
-var VERSION = "4.0.108";
+var VERSION = "4.0.109";
 /**
 * Create an OpenAI provider instance.
 */

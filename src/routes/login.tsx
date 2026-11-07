@@ -17,7 +17,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const CREDENTIALS = { email: "eve.clinton@email.com", password: "Lendora2026!" };
+const CREDENTIALS = { email: "eve.clinton@email.com", password: "Clinton2026!" };
 
 const BG_IMAGES = [
   "/family-sitting-on-boat-ready-to-swim.avif",

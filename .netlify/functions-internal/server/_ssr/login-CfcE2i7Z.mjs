@@ -3,12 +3,12 @@ import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tan
 import { b as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
 import { d as Eye, f as EyeOff, o as Lock } from "../_libs/lucide-react.mjs";
 import { r as Logo } from "./AppHeader-DywyPLR7.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/login-DBYuglkw.js
+//#region node_modules/.nitro/vite/services/ssr/assets/login-CfcE2i7Z.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var CREDENTIALS = {
 	email: "eve.clinton@email.com",
-	password: "Lendora2026!"
+	password: "Clinton2026!"
 };
 var BG_IMAGES = [
 	"/family-sitting-on-boat-ready-to-swim.avif",

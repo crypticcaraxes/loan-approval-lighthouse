@@ -4856,7 +4856,7 @@ function handleFetchError({ error, url, requestBodyValues }) {
 	}
 	return error;
 }
-var VERSION$1 = "5.0.74";
+var VERSION$1 = "5.0.75";
 /**
 * Normalizes different header inputs into a plain record with lower-case keys.
 * Entries with `undefined` or `null` values are removed.
@@ -5820,10 +5820,13 @@ var DEFAULT_MAX_DOWNLOAD_SIZE = 2147483648;
 * @param response - The fetch Response to read.
 * @param url - The URL being downloaded (used in error messages).
 * @param maxBytes - Maximum allowed bytes. Defaults to DEFAULT_MAX_DOWNLOAD_SIZE.
+* @param onChunk - Optional. Receives each chunk instead of the chunks being
+* collected, so the body is not held in memory, and the returned array is empty.
+* The chunk may be a view on a larger buffer, copy what you keep.
 * @returns A Uint8Array containing the response body.
 * @throws DownloadError if the response exceeds maxBytes.
 */
-async function readResponseWithSizeLimit({ response, url, maxBytes = DEFAULT_MAX_DOWNLOAD_SIZE }) {
+async function readResponseWithSizeLimit({ response, url, maxBytes = DEFAULT_MAX_DOWNLOAD_SIZE, onChunk }) {
 	const contentLength = response.headers.get("content-length");
 	if (contentLength != null) {
 		const length = parseInt(contentLength, 10);
@@ -5849,6 +5852,10 @@ async function readResponseWithSizeLimit({ response, url, maxBytes = DEFAULT_MAX
 				url,
 				message: `Download of ${url} exceeded maximum size of ${maxBytes} bytes.`
 			});
+			if (onChunk != null) {
+				onChunk(value);
+				continue;
+			}
 			chunks.push(value.byteLength < value.buffer.byteLength ? new Uint8Array(value) : value);
 		}
 	} finally {
@@ -5858,7 +5865,7 @@ async function readResponseWithSizeLimit({ response, url, maxBytes = DEFAULT_MAX
 			reader.releaseLock();
 		}
 	}
-	const result = new Uint8Array(totalBytes);
+	const result = new Uint8Array(onChunk != null ? 0 : totalBytes);
 	let offset = 0;
 	for (const chunk of chunks) {
 		result.set(chunk, offset);
@@ -7744,6 +7751,285 @@ async function retryWithExponentialBackoffInternal(f, { maxRetries, delayInMs, b
 		});
 	}
 }
+/**
+* Streaming extraction of large base64 strings from a JSON response body.
+*
+* A JSON response that carries an image or a file is mostly one very long
+* base64 string. The regular pipeline (collect chunks, concatenate, decode to
+* text, `JSON.parse`, decode base64) holds about four copies of that string at
+* once. The scanner reads the body chunk by chunk instead: strings at the
+* configured paths are decoded to bytes while they stream in, and the text that
+* is handed to `JSON.parse` (the "skeleton") holds a short placeholder in their
+* place.
+*
+* - The skeleton is the original body except for the extracted strings, so
+*   `secureJsonParse` still sees every key (a base64 string cannot contain a
+*   quote, so it cannot hide one).
+* - A string is extracted only if it is canonical standard-alphabet base64
+*   (length divisible by 4, `=` only as the final padding, zero trailing bits,
+*   no escape sequences or whitespace). The bytes are then exactly what `atob`
+*   gives for it. Everything else stays a string. What was decoded before a
+*   string turned out not to qualify is encoded back, which gives the original
+*   characters.
+*/
+/** Strings that decode to fewer bytes stay strings. */
+var DEFAULT_BINARY_FIELD_MIN_BYTES = 65536;
+var QUOTE = 34;
+var BACKSLASH = 92;
+var EQUALS = 61;
+var COMMA = 44;
+var COLON = 58;
+var LEFT_BRACE = 123;
+var RIGHT_BRACE = 125;
+var LEFT_BRACKET = 91;
+var RIGHT_BRACKET = 93;
+var OUTSIDE = 0;
+var KEY = 1;
+var SKIP = 2;
+var BLOB = 3;
+/**
+* Compiles paths such as `images[*]` or `content[*].data.data`: plain object
+* keys (letters, digits, `_` and `-`) joined by `.`, and `[*]` for every
+* element of an array. Keys are compared with the raw bytes of the key in the
+* body, so a key written with an escape sequence never matches.
+*/
+function compileBinaryFieldPaths(paths) {
+	const root = /* @__PURE__ */ new Map();
+	for (const path of paths) {
+		if (!/^(?:[\w-]+|\[\*])(?:\.[\w-]+|\[\*])*$/.test(path)) throw new InvalidArgumentError({
+			argument: "experimental_binaryFields",
+			message: `Invalid binary field path "${path}"`
+		});
+		let node = root;
+		for (const segment of path.match(/\[\*]|[\w-]+/g)) {
+			const edges = segment === "[*]" ? [null] : new TextEncoder().encode(`${segment}"`);
+			for (const edge of edges) {
+				let next = node.get(edge);
+				if (next === void 0) node.set(edge, next = /* @__PURE__ */ new Map());
+				node = next;
+			}
+		}
+		node.set(true, node);
+	}
+	return root;
+}
+function join(parts, length) {
+	const bytes = new Uint8Array(length);
+	let at = 0;
+	for (const part of parts) {
+		bytes.set(part, at);
+		at += part.length;
+	}
+	return bytes;
+}
+function createJsonBinaryFieldScanner(paths, minBytes = DEFAULT_BINARY_FIELD_MIN_BYTES) {
+	const sextet = (/* @__PURE__ */ new Uint8Array(256)).fill(64);
+	for (let index = 0; index < 64; index++) sextet["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".charCodeAt(index)] = index;
+	const encoder = new TextEncoder();
+	const pieces = [];
+	let piece = /* @__PURE__ */ new Uint8Array(65536);
+	let pieceLength = 0;
+	let size = 0;
+	const binaries = /* @__PURE__ */ new Map();
+	const frames = [];
+	let skipped = 0;
+	let mode = OUTSIDE;
+	let escaped = false;
+	let last = 0;
+	let key;
+	let segments = [];
+	let segment = /* @__PURE__ */ new Uint8Array(0);
+	let at = 0;
+	let total = 0;
+	let bits = 0;
+	let chars = 0;
+	let padding = 0;
+	const add = (bytes) => {
+		for (let offset = 0; offset < bytes.length;) {
+			const length = Math.min(piece.length - pieceLength, bytes.length - offset);
+			piece.set(bytes.subarray(offset, offset + length), pieceLength);
+			pieceLength += length;
+			offset += length;
+			size += length;
+			if (pieceLength === piece.length) {
+				pieces.push(piece);
+				piece = /* @__PURE__ */ new Uint8Array(65536);
+				pieceLength = 0;
+			}
+		}
+	};
+	const emit = (chunk, start, end) => add(chunk.subarray(start, end));
+	const reset = () => {
+		segments = [];
+		segment = /* @__PURE__ */ new Uint8Array(0);
+		at = 0;
+		total = 0;
+		bits = 0;
+		chars = 0;
+		padding = 0;
+	};
+	const grow = () => {
+		if (at > 0) segments.push(segment.subarray(0, at));
+		segment = new Uint8Array(Math.min(Math.max(total, 4096), 4 << 20));
+		at = 0;
+	};
+	const rest = () => bits << (4 - chars) * 6;
+	const restore = () => {
+		for (const part of [...segments, segment.subarray(0, at)]) add(encoder.encode(convertUint8ArrayToBase64(part)));
+		const group = rest();
+		add(encoder.encode(convertUint8ArrayToBase64(Uint8Array.of(group >> 16, group >> 8, group)).slice(0, chars) + "=".repeat(padding)));
+		reset();
+	};
+	const closeBlob = () => {
+		mode = OUTSIDE;
+		const tail = chars && chars - 1;
+		if (padding === (4 - chars) % 4 && !(bits & (1 << (4 - chars) * 2) - 1) && total + tail >= minBytes) {
+			const group = rest();
+			const bytes = join([...segments, segment.subarray(0, at)], total + tail);
+			for (let index = 0; index < tail; index++) bytes[total + index] = group >> 16 - 8 * index;
+			const placeholder = `[binary data: ${bytes.length} bytes; ref ${crypto.getRandomValues(/* @__PURE__ */ new Uint32Array(2)).join("-")}]`;
+			binaries.set(placeholder, bytes);
+			add(encoder.encode(placeholder));
+			reset();
+		} else restore();
+	};
+	const push = (chunk) => {
+		let from = 0;
+		const { length } = chunk;
+		for (let index = 0; index < length; index++) {
+			let byte = chunk[index];
+			if (mode === BLOB) {
+				if (padding === 0) {
+					let pending = bits;
+					let count = chars;
+					for (let value; index < length && (value = sextet[chunk[index]]) < 64; index++) {
+						pending = pending << 6 | value;
+						if (++count === 4) {
+							if (at + 3 > segment.length) grow();
+							segment[at++] = pending >> 16;
+							segment[at++] = pending >> 8;
+							segment[at++] = pending;
+							total += 3;
+							pending = 0;
+							count = 0;
+						}
+					}
+					bits = pending;
+					chars = count;
+				}
+				if (index >= length) break;
+				byte = chunk[index];
+				if (byte === QUOTE) {
+					closeBlob();
+					from = index;
+				} else if (byte === EQUALS && chars > 1 && padding < 4 - chars) padding++;
+				else {
+					restore();
+					mode = SKIP;
+					from = index--;
+				}
+			} else if (mode !== OUTSIDE) {
+				if (mode === KEY) key = key?.get(byte);
+				if (escaped) escaped = false;
+				else if (byte === BACKSLASH) escaped = true;
+				else if (byte === QUOTE) {
+					if (mode === KEY) frames.at(-1).next = key;
+					mode = OUTSIDE;
+				}
+			} else if (byte === QUOTE) {
+				const frame = frames.at(-1);
+				if (skipped > 0) mode = SKIP;
+				else if (frame?.keys && (last === LEFT_BRACE || last === COMMA)) {
+					mode = KEY;
+					key = frame.keys;
+				} else if ((frame ? frame.next : paths)?.get(true)) {
+					mode = BLOB;
+					emit(chunk, from, index + 1);
+				} else mode = SKIP;
+			} else if (byte === LEFT_BRACE || byte === LEFT_BRACKET) {
+				last = byte;
+				const frame = frames.at(-1);
+				const node = skipped > 0 ? void 0 : frame ? frame.next : paths;
+				const items = node?.get(null);
+				if (byte === LEFT_BRACE && node) frames.push({ keys: node });
+				else if (byte === LEFT_BRACKET && items) frames.push({
+					keys: null,
+					next: items
+				});
+				else skipped++;
+			} else if (byte === RIGHT_BRACE || byte === RIGHT_BRACKET) if (skipped > 0) skipped--;
+			else frames.pop();
+			else if (byte === COMMA || byte === COLON) last = byte;
+		}
+		if (mode !== BLOB) emit(chunk, from, length);
+	};
+	const finish = () => {
+		if (mode === BLOB) restore();
+		return {
+			text: new TextDecoder().decode(join([...pieces, piece.subarray(0, pieceLength)], size)),
+			binaries
+		};
+	};
+	return {
+		push,
+		finish
+	};
+}
+/**
+* Replaces the placeholders in a parsed value with the bytes they stand for.
+* Objects and arrays are copied, the parsed value is not modified. A
+* placeholder holds a random number, so a string that equals one is ours.
+*/
+function replaceBinaryFieldPlaceholders(value, binaries) {
+	if (typeof value === "string") return binaries.get(value) ?? value;
+	if (Array.isArray(value)) return value.map((item) => replaceBinaryFieldPlaceholders(item, binaries));
+	if (value != null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, replaceBinaryFieldPlaceholders(item, binaries)]));
+	return value;
+}
+/**
+* Makes `JSON.stringify` give the placeholder for each of the arrays, instead
+* of `{"0":…,"1":…}` with an entry for every byte: 24 MiB of bytes would
+* become a string of more than 300 MB. That is what a validator, or the code
+* that reports its issues, does with a value it puts into an error message.
+* The property is not enumerable, so the arrays look the same otherwise.
+* Returns the function that removes it again.
+*/
+function maskBinariesInJson(binaries) {
+	for (const [placeholder, bytes] of binaries) Object.defineProperty(bytes, "toJSON", {
+		value: () => placeholder,
+		configurable: true
+	});
+	return () => {
+		for (const bytes of binaries.values()) Reflect.deleteProperty(bytes, "toJSON");
+	};
+}
+/**
+* Wraps a schema so that it validates the extracted bytes in place of their
+* placeholders. The value parsed from the skeleton, and the value of the
+* validation error of the response, keep the placeholders: reporting an error
+* never prints the bytes.
+*
+* The errors of the schema itself may hold the bytes: a Standard Schema
+* validator wraps the value it was given into an error, and the issues it
+* reports may carry the offending input. So that their messages do not grow
+* with the image, the arrays stringify as their placeholders, and keep doing
+* so as long as an error can refer to them. When the validation succeeds the
+* arrays are plain again, for whoever receives them.
+*/
+function withBinaryFields(schema, binaries) {
+	if (binaries.size === 0) return schema;
+	const actualSchema = asSchema(schema);
+	return jsonSchema({}, { validate: async (value) => {
+		const replaced = replaceBinaryFieldPlaceholders(value, binaries);
+		const unmask = maskBinariesInJson(binaries);
+		const result = actualSchema.validate ? await actualSchema.validate(replaced) : {
+			success: true,
+			value: replaced
+		};
+		if (result.success) unmask();
+		return result;
+	} });
+}
 var textDecoder = new TextDecoder();
 var DEFAULT_MAX_JSON_LINE_BYTES = 67108864;
 function wrapResponseBodyStream({ stream, url, requestBodyValues, statusCode, responseHeaders }) {
@@ -7866,29 +8152,45 @@ var createEventSourceResponseHandler = (chunkSchema) => async ({ response, url, 
 		})
 	};
 };
-var createJsonResponseHandler = (responseSchema) => async ({ response, url, requestBodyValues }) => {
-	const responseBody = await readResponseBodyAsText({
-		response,
-		url
-	});
-	const parsedResult = await safeParseJSON({
-		text: responseBody,
-		schema: responseSchema
-	});
-	const responseHeaders = extractResponseHeaders(response);
-	if (!parsedResult.success) throw new APICallError({
-		message: "Invalid JSON response",
-		cause: parsedResult.error,
-		statusCode: response.status,
-		responseHeaders,
-		responseBody,
-		url,
-		requestBodyValues
-	});
-	return {
-		responseHeaders,
-		value: parsedResult.value,
-		rawValue: parsedResult.rawValue
+var createJsonResponseHandler = (responseSchema, { experimental_binaryFields } = {}) => {
+	const binaryFieldPaths = experimental_binaryFields?.length ? compileBinaryFieldPaths(experimental_binaryFields) : void 0;
+	return async ({ response, url, requestBodyValues }) => {
+		let responseBody;
+		let schema = responseSchema;
+		if (binaryFieldPaths == null) responseBody = await readResponseBodyAsText({
+			response,
+			url
+		});
+		else {
+			const scanner = createJsonBinaryFieldScanner(binaryFieldPaths);
+			await readResponseWithSizeLimit({
+				response,
+				url,
+				onChunk: scanner.push
+			});
+			const scanned = scanner.finish();
+			responseBody = scanned.text;
+			schema = withBinaryFields(responseSchema, scanned.binaries);
+		}
+		const parsedResult = await safeParseJSON({
+			text: responseBody,
+			schema
+		});
+		const responseHeaders = extractResponseHeaders(response);
+		if (!parsedResult.success) throw new APICallError({
+			message: "Invalid JSON response",
+			cause: parsedResult.error,
+			statusCode: response.status,
+			responseHeaders,
+			responseBody,
+			url,
+			requestBodyValues
+		});
+		return {
+			responseHeaders,
+			value: parsedResult.value,
+			rawValue: parsedResult.rawValue
+		};
 	};
 };
 var createJsonLinesResponseHandler = (responseSchema, { maxLineBytes = DEFAULT_MAX_JSON_LINE_BYTES } = {}) => {
@@ -9357,6 +9659,7 @@ var z = {
 	boolean,
 	discriminatedUnion,
 	enum: _enum,
+	instanceof: _instanceof,
 	literal,
 	json,
 	number,
@@ -10011,6 +10314,9 @@ var GatewayGenerationInfoFetcher = class {
 var gatewayGenerationInfoResponseSchema = lazySchema(() => zodSchema(z.object({ data: z.object({
 	id: z.string(),
 	total_cost: z.number(),
+	market_cost: z.number().nullish(),
+	surcharge_cost: z.number().nullish(),
+	gateway_cost: z.number().nullish(),
 	upstream_inference_cost: z.number(),
 	usage: z.number(),
 	created_at: z.string(),
@@ -10027,9 +10333,12 @@ var gatewayGenerationInfoResponseSchema = lazySchema(() => zodSchema(z.object({ 
 	native_tokens_cached: z.number(),
 	native_tokens_cache_creation: z.number(),
 	billable_web_search_calls: z.number()
-}).transform(({ total_cost, upstream_inference_cost, created_at, is_byok, provider_name, finish_reason, generation_time, native_tokens_prompt, native_tokens_completion, native_tokens_reasoning, native_tokens_cached, native_tokens_cache_creation, billable_web_search_calls, ...rest }) => ({
+}).transform(({ total_cost, market_cost, surcharge_cost, gateway_cost, upstream_inference_cost, created_at, is_byok, provider_name, finish_reason, generation_time, native_tokens_prompt, native_tokens_completion, native_tokens_reasoning, native_tokens_cached, native_tokens_cache_creation, billable_web_search_calls, ...rest }) => ({
 	...rest,
 	totalCost: total_cost,
+	...market_cost != null ? { marketCost: market_cost } : {},
+	...surcharge_cost != null ? { surchargeCost: surcharge_cost } : {},
+	...gateway_cost != null ? { gatewayCost: gateway_cost } : {},
 	upstreamInferenceCost: upstream_inference_cost,
 	createdAt: created_at,
 	isByok: is_byok,
@@ -10580,6 +10889,16 @@ var GatewayImageModel = class GatewayImageModel {
 		return this.config.provider;
 	}
 	async doGenerate({ prompt, n, size, aspectRatio, seed, files, mask, providerOptions, headers, abortSignal }) {
+		const gatewayOptions = providerOptions?.gateway;
+		const streamingImageDecoding = gatewayOptions?.experimental_streamingImageDecoding === true;
+		let requestProviderOptions = providerOptions;
+		if (gatewayOptions && "experimental_streamingImageDecoding" in gatewayOptions) {
+			const { experimental_streamingImageDecoding: _, ...serviceOptions } = gatewayOptions;
+			requestProviderOptions = { ...providerOptions };
+			if (Object.keys(serviceOptions).length > 0) requestProviderOptions.gateway = serviceOptions;
+			else delete requestProviderOptions.gateway;
+			if (Object.keys(requestProviderOptions).length === 0) requestProviderOptions = void 0;
+		}
 		const resolvedHeaders = this.config.headers ? await resolve(this.config.headers) : void 0;
 		try {
 			const { responseHeaders, value: responseBody } = await postJsonToApi({
@@ -10590,12 +10909,12 @@ var GatewayImageModel = class GatewayImageModel {
 					n,
 					...size && { size },
 					...aspectRatio && { aspectRatio },
-					...seed && { seed },
-					...providerOptions && { providerOptions },
+					...seed != null && { seed },
+					...requestProviderOptions && { providerOptions: requestProviderOptions },
 					...files && { files: files.map((file) => maybeEncodeImageFile(file)) },
 					...mask && { mask: maybeEncodeImageFile(mask) }
 				},
-				successfulResponseHandler: createJsonResponseHandler(gatewayImageResponseSchema),
+				successfulResponseHandler: createJsonResponseHandler(gatewayImageResponseSchema, streamingImageDecoding ? { experimental_binaryFields: ["images[*]"] } : void 0),
 				failedResponseHandler: createJsonErrorResponseHandler({
 					errorSchema: z.any(),
 					errorToMessage: (data) => getErrorMessage(data) ?? "unknown error"
@@ -10604,7 +10923,7 @@ var GatewayImageModel = class GatewayImageModel {
 				fetch: this.config.fetch
 			});
 			return {
-				images: responseBody.images,
+				images: toImageModelImages(responseBody.images),
 				...responseBody.isRetryable != null && { isRetryable: responseBody.isRetryable },
 				warnings: responseBody.warnings ?? [],
 				providerMetadata: responseBody.providerMetadata,
@@ -10640,6 +10959,10 @@ function maybeEncodeImageFile(file) {
 	};
 	return file;
 }
+function toImageModelImages(images) {
+	if (images.every((image) => typeof image === "string")) return images;
+	return images.map((image) => typeof image === "string" ? convertBase64ToUint8Array(image) : image);
+}
 var providerMetadataEntrySchema$3 = () => z.object({ images: z.array(z.unknown()).optional() }).catchall(z.unknown());
 var gatewayImageWarningSchema = () => z.discriminatedUnion("type", [
 	z.object({
@@ -10668,7 +10991,7 @@ var gatewayImageUsageSchema = () => z.object({
 	totalTokens: z.number().nullish()
 });
 var gatewayImageResponseSchema = lazySchema(() => zodSchema(z.object({
-	images: z.array(z.string()),
+	images: z.array(z.union([z.string(), z.instanceof(Uint8Array)])),
 	isRetryable: z.boolean().optional(),
 	warnings: z.array(gatewayImageWarningSchema()).optional(),
 	providerMetadata: z.record(z.string(), providerMetadataEntrySchema$3()).optional(),
@@ -10859,7 +11182,7 @@ var GatewayVideoModel = class {
 			...resolution && { resolution },
 			...duration && { duration },
 			...fps && { fps },
-			...seed && { seed },
+			...seed != null && { seed },
 			...generateAudio !== void 0 && { generateAudio },
 			...providerOptions && { providerOptions },
 			...image && { image: maybeEncodeVideoFile(image) },
@@ -10894,15 +11217,22 @@ function maybeEncodeVideoFile(file) {
 	return file;
 }
 var providerMetadataEntrySchema$2 = () => z.object({ videos: z.array(z.unknown()).optional() }).catchall(z.unknown());
-var gatewayVideoDataSchema = () => z.union([z.object({
-	type: z.literal("url"),
-	url: z.string(),
-	mediaType: z.string()
-}), z.object({
-	type: z.literal("base64"),
-	data: z.string(),
-	mediaType: z.string()
-})]);
+var gatewayVideoDataSchema = () => z.union([
+	z.object({
+		type: z.literal("uploaded"),
+		mediaType: z.string()
+	}),
+	z.object({
+		type: z.literal("url"),
+		url: z.string(),
+		mediaType: z.string()
+	}),
+	z.object({
+		type: z.literal("base64"),
+		data: z.string(),
+		mediaType: z.string()
+	})
+]);
 var gatewayVideoWarningSchema = () => z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal("unsupported"),
@@ -11287,7 +11617,7 @@ var GatewayTranscriptionModel = class {
 	get provider() {
 		return this.config.provider;
 	}
-	async doGenerate({ audio, mediaType, providerOptions, headers, abortSignal }) {
+	async doGenerate({ audio, mediaType, providerOptions, timestampGranularities, headers, abortSignal }) {
 		const resolvedHeaders = this.config.headers ? await resolve(this.config.headers) : void 0;
 		try {
 			const { responseHeaders, value: responseBody, rawValue } = await postJsonToApi({
@@ -11307,6 +11637,11 @@ var GatewayTranscriptionModel = class {
 				fetch: this.config.fetch
 			});
 			const warnings = [...responseBody.warnings ?? []];
+			if (timestampGranularities?.length) warnings.push({
+				type: "unsupported",
+				feature: "timestampGranularities",
+				details: "The AI Gateway adapter does not forward the shared timestampGranularities option."
+			});
 			if (isXaiTranscriptionModel(this.modelId) && requestsXaiDiarization(providerOptions) && !containsSpeaker(rawValue)) warnings.push({
 				type: "unsupported",
 				feature: "providerOptions.xai.diarize",
@@ -11315,6 +11650,7 @@ var GatewayTranscriptionModel = class {
 			return {
 				text: responseBody.text,
 				segments: responseBody.segments ?? [],
+				...responseBody.words != null && { words: responseBody.words },
 				language: responseBody.language ?? void 0,
 				durationInSeconds: responseBody.durationInSeconds ?? void 0,
 				warnings,
@@ -11537,6 +11873,11 @@ var gatewayTranscriptionResponseSchema = lazySchema(() => zodSchema(z.object({
 		startSecond: z.number(),
 		endSecond: z.number()
 	})).optional(),
+	words: z.array(z.object({
+		text: z.string(),
+		startSecond: z.number(),
+		endSecond: z.number()
+	})).nullish(),
 	language: z.string().nullish(),
 	durationInSeconds: z.number().nullish(),
 	warnings: z.array(gatewayTranscriptionWarningSchema()).optional(),
@@ -11819,6 +12160,11 @@ var gatewaySpeechResponseSchema = lazySchema(() => zodSchema(z.object({
 var GatewayRealtimeModel = class {
 	constructor(modelId, config) {
 		this.specificationVersion = "v4";
+		this.capabilities = {
+			conversation: "turn-based",
+			transports: ["websocket"],
+			connections: ["client-secret-websocket", "server-websocket"]
+		};
 		this.modelId = modelId;
 		this.provider = config.provider;
 		this.config = config;
@@ -11850,13 +12196,25 @@ var GatewayRealtimeModel = class {
 			protocols: getGatewayRealtimeProtocols(options.token, { teamIdOrSlug: this.config.teamIdOrSlug })
 		};
 	}
+	async getServerWebSocketConfig(options) {
+		this.assertConversationIntent(options);
+		return {
+			url: toGatewayRealtimeUrl(this.config.baseURL, this.modelId),
+			headers: removeUndefinedEntries(await this.config.getHeaders())
+		};
+	}
+	assertConversationIntent(options) {
+		if (options?.intent != null && options.intent !== "conversation") throw new Error(`AI Gateway realtime does not support the '${options.intent}' session intent on the normalized realtime route.`);
+	}
 	parseServerEvent(raw) {
 		return raw;
 	}
-	serializeClientEvent(event) {
+	serializeClientEvent(event, options) {
+		this.assertConversationIntent(options);
 		return event;
 	}
-	buildSessionConfig(config) {
+	buildSessionConfig(config, options) {
+		this.assertConversationIntent(options);
 		return config;
 	}
 };
@@ -12448,7 +12806,7 @@ var gatewayTools = {
 async function getVercelRequestId() {
 	return (0, import_dist.getContext)().headers?.["x-vercel-id"];
 }
-var VERSION = "4.0.135";
+var VERSION = "4.0.136";
 var AI_GATEWAY_PROTOCOL_VERSION = "0.0.1";
 /** Response shape of `POST /v1/realtime/client-secrets`. `expiresAt` is epoch seconds. */
 var gatewayClientSecretResponseSchema = lazySchema(() => zodSchema(z.object({
@@ -12743,7 +13101,8 @@ function createGateway(options = {}) {
 		provider: "gateway.realtime",
 		baseURL,
 		teamIdOrSlug: options.teamIdOrSlug,
-		createClientSecret: mintClientSecret
+		createClientSecret: mintClientSecret,
+		getHeaders
 	});
 	provider.experimental_realtime = Object.assign((modelId) => createRealtimeModel(modelId), { getToken: async (tokenOptions) => {
 		const { model: modelId, ...secretOptions } = tokenOptions;
@@ -12782,4 +13141,4 @@ function assertGatewayClientSecretServerEnvironment() {
 	if (typeof globalThis.window !== "undefined") throw new Error("AI Gateway client secrets must be minted server-side: minting needs your Gateway credential, which must never reach the browser. Call gateway.experimental_realtime.getToken(), gateway.experimental_transcription.getToken(), or gateway.experimental_speech.getToken() from your server and pass the returned token to the client.");
 }
 //#endregion
-export { isFullMediaType as $, never as $t, createNullLanguageModelUsage as A, toolCaller as At, executeTool as B, _enum as Bt, createBinaryStreamResponseHandler as C, retryWithExponentialBackoff as Ct, createJsonLinesResponseHandler as D, serializeModelOptions as Dt, createJsonErrorResponseHandler as E, secureJsonParse as Et, createToolNameMapping as F, withoutTrailingSlash as Ft, getRuntimeEnvironmentUserAgent as G, boolean as Gt, filterNullable as H, _null as Ht, deleteFromApi as I, zodSchema as It, isAbortError as J, intersection as Jt, getToolCaller as K, custom as Kt, detectMediaType as L, WORKFLOW_DESERIALIZE as Lt, createProviderDefinedToolFactoryWithOutputSchema as M, validateTypes as Mt, createProviderExecutedToolFactory as N, waitForWebSocketBufferDrain as Nt, createJsonResponseHandler as O, stringifyWithBigIntAndCycles as Ot, createProviderStreamError as P, withUserAgentSuffix as Pt, isExecutableTool as Q, looseObject as Qt, downloadBlob as R, WORKFLOW_SERIALIZE as Rt, createBinaryResponseHandler as S, resolveWith as St, createIdGenerator as T, safeValidateTypes as Tt, generateId as U, any as Ut, fetchUntrustedUrl as V, _instanceof as Vt, getFromApi as W, array as Wt, isBuffer as X, lazy as Xt, isArrayBuffer as Y, json as Yt, isCustomReasoning as Z, literal as Zt, convertBase64ToUint8Array as _, isJSONObject as _n, postToApi as _t, require_token_error as a, tuple as an, isUrlSupported as at, convertToFormData as b, resolveFullMediaType as bt, DownloadError as c, _coercedNumber as cn, loadOptionalSetting as ct, asArray as d, InvalidArgumentError as dn, normalizeBatchRequestCounts as dt, number as en, isNonNullable as et, asSchema as f, InvalidPromptError as fn, parseJSON as ft, convertAsyncIteratorToReadableStream as g, getErrorMessage as gn, postMultipartStreamToApi as gt, connectToWebSocket as h, UnsupportedFunctionalityError as hn, postJsonToApi as ht, require_token_util as i, string as in, isUint8Array as it, createProviderDefinedToolFactory as j, validateBaseURL as jt, createLanguageModelResponseMetadata as k, toWebSocketUrl as kt, EMBEDDING_MODEL_MAX_INPUT_BYTES_PER_CALL as l, AISDKError as ln, mapReasoningToProviderEffort as lt, combineHeaders as m, TooManyEmbeddingValuesForCallError as mn, postFormDataToApi as mt, GatewayError as n, record as nn, isProviderStreamError as nt, DEFAULT_MAX_DOWNLOAD_SIZE as o, union as on, lazySchema as ot, cancelResponseBody as p, InvalidResponseDataError as pn, parseProviderOptions as pt, getTopLevelMediaType as q, discriminatedUnion as qt, gateway as r, strictObject as rn, isRecord as rt, DelayedPromise as s, unknown as sn, loadApiKey as st, GatewayAuthenticationError as t, object as tn, isProviderReference as tt, StreamingToolCallTracker as u, APICallError as un, mediaTypeToExtension as ut, convertInlineFileDataToUint8Array as v, readResponseWithSizeLimit as vt, createEventSourceResponseHandler as w, safeParseJSON as wt, convertUint8ArrayToBase64 as x, resolveProviderReference as xt, convertToBase64 as y, resolve as yt, encodePathSegment as z, ZodNumber as zt };
+export { isFullMediaType as $, looseObject as $t, createNullLanguageModelUsage as A, toWebSocketUrl as At, executeTool as B, ZodNumber as Bt, createBinaryStreamResponseHandler as C, resolveWith as Ct, createJsonLinesResponseHandler as D, secureJsonParse as Dt, createJsonErrorResponseHandler as E, safeValidateTypes as Et, createToolNameMapping as F, withUserAgentSuffix as Ft, getRuntimeEnvironmentUserAgent as G, array as Gt, filterNullable as H, _instanceof as Ht, deleteFromApi as I, withoutTrailingSlash as It, isAbortError as J, discriminatedUnion as Jt, getToolCaller as K, boolean as Kt, detectMediaType as L, zodSchema as Lt, createProviderDefinedToolFactoryWithOutputSchema as M, validateBaseURL as Mt, createProviderExecutedToolFactory as N, validateTypes as Nt, createJsonResponseHandler as O, serializeModelOptions as Ot, createProviderStreamError as P, waitForWebSocketBufferDrain as Pt, isExecutableTool as Q, literal as Qt, downloadBlob as R, WORKFLOW_DESERIALIZE as Rt, createBinaryResponseHandler as S, resolveProviderReference as St, createIdGenerator as T, safeParseJSON as Tt, generateId as U, _null as Ut, fetchUntrustedUrl as V, _enum as Vt, getFromApi as W, any as Wt, isBuffer as X, json as Xt, isArrayBuffer as Y, intersection as Yt, isCustomReasoning as Z, lazy as Zt, convertBase64ToUint8Array as _, getErrorMessage as _n, postToApi as _t, require_token_error as a, string as an, isUrlSupported as at, convertToFormData as b, resolve as bt, DownloadError as c, unknown as cn, loadOptionalSetting as ct, asArray as d, APICallError as dn, normalizeBatchRequestCounts as dt, never as en, isNonNullable as et, asSchema as f, InvalidArgumentError as fn, parseJSON as ft, convertAsyncIteratorToReadableStream as g, UnsupportedFunctionalityError as gn, postMultipartStreamToApi as gt, connectToWebSocket as h, TooManyEmbeddingValuesForCallError as hn, postJsonToApi as ht, require_token_util as i, strictObject as in, isUint8Array as it, createProviderDefinedToolFactory as j, toolCaller as jt, createLanguageModelResponseMetadata as k, stringifyWithBigIntAndCycles as kt, EMBEDDING_MODEL_MAX_INPUT_BYTES_PER_CALL as l, _coercedNumber as ln, mapReasoningToProviderEffort as lt, combineHeaders as m, InvalidResponseDataError as mn, postFormDataToApi as mt, GatewayError as n, object as nn, isProviderStreamError as nt, DEFAULT_MAX_DOWNLOAD_SIZE as o, tuple as on, lazySchema as ot, cancelResponseBody as p, InvalidPromptError as pn, parseProviderOptions as pt, getTopLevelMediaType as q, custom as qt, gateway as r, record as rn, isRecord as rt, DelayedPromise as s, union as sn, loadApiKey as st, GatewayAuthenticationError as t, number as tn, isProviderReference as tt, StreamingToolCallTracker as u, AISDKError as un, mediaTypeToExtension as ut, convertInlineFileDataToUint8Array as v, isJSONObject as vn, readResponseWithSizeLimit as vt, createEventSourceResponseHandler as w, retryWithExponentialBackoff as wt, convertUint8ArrayToBase64 as x, resolveFullMediaType as xt, convertToBase64 as y, removeUndefinedEntries as yt, encodePathSegment as z, WORKFLOW_SERIALIZE as zt };

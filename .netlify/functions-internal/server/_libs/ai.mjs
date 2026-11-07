@@ -1,5 +1,5 @@
 import { n as __exportAll } from "../_runtime.mjs";
-import { $ as isFullMediaType, $t as never, B as executeTool, Bt as _enum, Ct as retryWithExponentialBackoff, G as getRuntimeEnvironmentUserAgent, Gt as boolean, H as filterNullable, Ht as _null, It as zodSchema, J as isAbortError, K as getToolCaller, Kt as custom, L as detectMediaType, Mt as validateTypes, Pt as withUserAgentSuffix, Q as isExecutableTool, Qt as looseObject, T as createIdGenerator, Tt as safeValidateTypes, V as fetchUntrustedUrl, Vt as _instanceof, Wt as array, X as isBuffer, Xt as lazy, Y as isArrayBuffer, Zt as literal, _ as convertBase64ToUint8Array, at as isUrlSupported, c as DownloadError, d as asArray, en as number, f as asSchema, fn as InvalidPromptError, gn as getErrorMessage, hn as UnsupportedFunctionalityError, in as string, it as isUint8Array, ln as AISDKError, n as GatewayError, nn as record, nt as isProviderStreamError, on as union, ot as lazySchema, p as cancelResponseBody, qt as discriminatedUnion, r as gateway, s as DelayedPromise, sn as unknown, t as GatewayAuthenticationError, tn as object, tt as isProviderReference, un as APICallError, vt as readResponseWithSizeLimit, wt as safeParseJSON, x as convertUint8ArrayToBase64 } from "./@ai-sdk/gateway+[...].mjs";
+import { $ as isFullMediaType, $t as looseObject, B as executeTool, Et as safeValidateTypes, Ft as withUserAgentSuffix, G as getRuntimeEnvironmentUserAgent, Gt as array, H as filterNullable, Ht as _instanceof, J as isAbortError, Jt as discriminatedUnion, K as getToolCaller, Kt as boolean, L as detectMediaType, Lt as zodSchema, Nt as validateTypes, Q as isExecutableTool, Qt as literal, T as createIdGenerator, Tt as safeParseJSON, Ut as _null, V as fetchUntrustedUrl, Vt as _enum, X as isBuffer, Y as isArrayBuffer, Zt as lazy, _ as convertBase64ToUint8Array, _n as getErrorMessage, an as string, at as isUrlSupported, c as DownloadError, cn as unknown, d as asArray, dn as APICallError, en as never, f as asSchema, gn as UnsupportedFunctionalityError, it as isUint8Array, n as GatewayError, nn as object, nt as isProviderStreamError, ot as lazySchema, p as cancelResponseBody, pn as InvalidPromptError, qt as custom, r as gateway, rn as record, s as DelayedPromise, sn as union, t as GatewayAuthenticationError, tn as number, tt as isProviderReference, un as AISDKError, vt as readResponseWithSizeLimit, wt as retryWithExponentialBackoff, x as convertUint8ArrayToBase64 } from "./@ai-sdk/gateway+[...].mjs";
 //#region node_modules/ai/dist/index.js
 var dist_exports = /* @__PURE__ */ __exportAll({
 	AI_SDK_TELEMETRY_TRACING_CHANNEL: () => AI_SDK_TELEMETRY_TRACING_CHANNEL,
@@ -24,6 +24,7 @@ var dist_exports = /* @__PURE__ */ __exportAll({
 	UnsupportedModelVersionError: () => UnsupportedModelVersionError,
 	assistantModelMessageSchema: () => assistantModelMessageSchema,
 	consumeStream: () => consumeStream,
+	convertDataContentToBase64String: () => convertDataContentToBase64String,
 	createDownload: () => createDownload,
 	createTextStreamResponse: () => createTextStreamResponse,
 	createUIMessageStreamResponse: () => createUIMessageStreamResponse,
@@ -53,6 +54,26 @@ var dist_exports = /* @__PURE__ */ __exportAll({
 	toolModelMessageSchema: () => toolModelMessageSchema,
 	userModelMessageSchema: () => userModelMessageSchema
 });
+/** Remove credentials, paths, queries, and fragments before emitting telemetry. */
+function getRequestOrigin(url) {
+	if (url == null) return void 0;
+	try {
+		const endpoint = new URL(url);
+		return endpoint.protocol === "http:" || endpoint.protocol === "https:" ? endpoint.origin : void 0;
+	} catch {
+		return;
+	}
+}
+/** Preserve request metadata while keeping unknown or sensitive URL fields out of results. */
+function sanitizeRequestMetadata(request) {
+	if (request == null || !("url" in request)) return request;
+	const { url, ...rest } = request;
+	const origin = getRequestOrigin(url);
+	return {
+		...rest,
+		...origin != null ? { url: origin } : {}
+	};
+}
 var name$23 = "AI_InvalidArgumentError";
 var marker$23 = `vercel.ai.error.${name$23}`;
 var symbol$23 = Symbol.for(marker$23);
@@ -728,6 +749,18 @@ function asTranscriptionModelV4(model) {
 	const v3Model = model.specificationVersion === "v2" ? asTranscriptionModelV3(model) : model;
 	return new Proxy(v3Model, { get(target, prop) {
 		if (prop === "specificationVersion") return "v4";
+		if (prop === "doGenerate") return async ({ timestampGranularities, ...options }) => {
+			const result = await target.doGenerate.call(model, options);
+			if (!timestampGranularities?.length) return result;
+			return {
+				...result,
+				warnings: [...result.warnings, {
+					type: "unsupported",
+					feature: "timestampGranularities",
+					details: `Shared timestamp granularities are not supported by ${model.specificationVersion} transcription models.`
+				}]
+			};
+		};
 		return target[prop];
 	} });
 }
@@ -824,7 +857,7 @@ function cloneValue(value, seen) {
 	});
 	return copy;
 }
-var VERSION = "7.0.162";
+var VERSION = "7.0.163";
 /**
 * Download a file from a URL.
 *
@@ -907,6 +940,16 @@ function mergeObjects(base, overrides) {
 		}
 	}
 	return result;
+}
+/**
+* Converts data content to a base64-encoded string.
+*
+* @param content - Data content to convert.
+* @returns Base64-encoded string.
+*/
+function convertDataContentToBase64String(content) {
+	if (typeof content === "string") return content;
+	return convertUint8ArrayToBase64(convertDataContentToUint8Array(content));
 }
 /**
 * Converts data content to a Uint8Array.
@@ -1263,12 +1306,18 @@ async function downloadAssets(messages, download, supportedUrls) {
 		if (message.role === "tool") for (const part of message.content) {
 			if (part.type !== "tool-result") continue;
 			if (part.output.type !== "content") continue;
-			for (const contentPart of part.output.value) if (contentPart.type === "file") downloadableFiles.push(contentPart);
+			for (const contentPart of part.output.value) {
+				const filePart = getDownloadableFilePart(contentPart);
+				if (filePart != null) downloadableFiles.push(filePart);
+			}
 		}
 		if (message.role === "assistant" && Array.isArray(message.content)) for (const part of message.content) {
 			if (part.type !== "tool-result") continue;
 			if (part.output.type !== "content") continue;
-			for (const contentPart of part.output.value) if (contentPart.type === "file") downloadableFiles.push(contentPart);
+			for (const contentPart of part.output.value) {
+				const filePart = getDownloadableFilePart(contentPart);
+				if (filePart != null) downloadableFiles.push(filePart);
+			}
 		}
 	}
 	const plannedDownloads = downloadableFiles.map((part) => {
@@ -1291,6 +1340,57 @@ async function downloadAssets(messages, download, supportedUrls) {
 		data: file.data,
 		mediaType: file.mediaType
 	}]).filter((file) => file != null));
+}
+/**
+* Resolves the tool result content parts that point at a remote file to the
+* tagged file shape, including the deprecated `file-url` and `image-url`
+* types, so that they are downloaded and inlined exactly like their `file`
+* replacement. Returns `undefined` for content that is already inline or
+* provider-referenced.
+*/
+function getDownloadableFilePart(contentPart) {
+	switch (contentPart.type) {
+		case "file": return contentPart;
+		case "file-url": return {
+			type: "file",
+			data: {
+				type: "url",
+				url: new URL(contentPart.url)
+			},
+			mediaType: contentPart.mediaType ?? getMediaTypeFromUrl(contentPart.url),
+			providerOptions: contentPart.providerOptions
+		};
+		case "image-url": return {
+			type: "file",
+			data: {
+				type: "url",
+				url: new URL(contentPart.url)
+			},
+			mediaType: "image",
+			providerOptions: contentPart.providerOptions
+		};
+		default: return;
+	}
+}
+/**
+* Resolves file data and media type for a remote tool result content part: the downloaded
+* bytes when the asset was fetched, otherwise the URL reference. `originalUrl`
+* is preserved when the URL string does not round-trip through `URL`.
+*/
+function resolveDownloadedFile({ url, originalUrl, downloadedAssets, mediaType }) {
+	const convertedPart = convertPartToLanguageModelPart({
+		type: "file",
+		data: {
+			type: "url",
+			url,
+			...url.toString() !== originalUrl ? { originalUrl } : {}
+		},
+		mediaType
+	}, downloadedAssets);
+	return {
+		data: convertedPart.data,
+		mediaType: convertedPart.mediaType
+	};
 }
 /**
 * Convert part of a user message to a LanguageModelV4Part.
@@ -1377,12 +1477,12 @@ function mapToolResultOutput({ output, provider, warnings = [], downloadedAssets
 					});
 					return {
 						type: "file",
-						data: {
-							type: "url",
+						...resolveDownloadedFile({
 							url,
-							...url.toString() !== item.url ? { originalUrl: item.url } : {}
-						},
-						mediaType,
+							originalUrl: item.url,
+							downloadedAssets,
+							mediaType
+						}),
 						providerOptions: item.providerOptions
 					};
 				}
@@ -1443,12 +1543,12 @@ function mapToolResultOutput({ output, provider, warnings = [], downloadedAssets
 					});
 					return {
 						type: "file",
-						data: {
-							type: "url",
+						...resolveDownloadedFile({
 							url,
-							...url.toString() !== item.url ? { originalUrl: item.url } : {}
-						},
-						mediaType: "image",
+							originalUrl: item.url,
+							downloadedAssets,
+							mediaType: "image"
+						}),
 						providerOptions: item.providerOptions
 					};
 				}
@@ -2981,7 +3081,7 @@ function loadBuiltinModule(id) {
 * if tracing itself throws, and prevents falling back by calling `execute` a
 * second time.
 */
-async function runWithTracingChannelSpan(message, execute) {
+async function runWithTracingChannelSpan(message, execute, recordResult = true) {
 	const tracingChannel = (await loadDiagnosticsChannel())?.tracingChannel?.(AI_SDK_TELEMETRY_TRACING_CHANNEL);
 	if (tracingChannel == null || tracingChannel.hasSubscribers === false) return await execute();
 	let executePromise;
@@ -3004,10 +3104,13 @@ async function runWithTracingChannelSpan(message, execute) {
 			hasExecutionError = true;
 			throw error;
 		});
-		return executePromise;
+		return recordResult ? executePromise : executePromise.then(() => void 0, () => {
+			throw new Error("AI SDK operation failed");
+		});
 	};
 	try {
-		return await tracingChannel.tracePromise(tracedExecute, message);
+		await tracingChannel.tracePromise(tracedExecute, message);
+		return executionResult;
 	} catch {
 		if (hasExecutionError) throw executionError;
 		if (hasExecutionResult) return executionResult;
@@ -3019,7 +3122,7 @@ async function runWithTracingChannelSpan(message, execute) {
 * Opens a long-lived tracing-channel span context and returns a runner that can
 * re-enter that context later without changing stream setup timing.
 */
-function openTelemetryChannelSpanContext({ message, completion }) {
+function openTelemetryChannelSpanContext({ message, completion, recordResult = true }) {
 	if (!isNodeRuntime()) {
 		Promise.resolve(completion).catch(() => {});
 		return;
@@ -3043,10 +3146,10 @@ function openTelemetryChannelSpanContext({ message, completion }) {
 		if (asyncEndPublished) return;
 		asyncEndPublished = true;
 		if (error !== void 0) {
-			context.error = error;
+			context.error = recordResult ? error : /* @__PURE__ */ new Error("AI SDK operation failed");
 			safePublish(() => tracingChannel.error.publish(context));
 		}
-		if (result !== void 0) context.result = result;
+		if (recordResult && result !== void 0) context.result = result;
 		safePublish(() => tracingChannel.asyncEnd.publish(context));
 	};
 	safePublish(() => {
@@ -3060,6 +3163,114 @@ function openTelemetryChannelSpanContext({ message, completion }) {
 }
 function getGlobalTelemetryIntegrations() {
 	return globalThis.AI_SDK_TELEMETRY_INTEGRATIONS ?? [];
+}
+/**
+* Filters SDK-owned content fields on a copy. Only descend into SDK event
+* containers; user context has its own inclusion policy.
+*/
+function filterTelemetryEvent(event, telemetry) {
+	const hideInputs = telemetry.recordInputs === false;
+	const hideOutputs = telemetry.recordOutputs === false;
+	if (!hideInputs && !hideOutputs || event == null || typeof event !== "object") return event;
+	const filtered = Object.assign(Object.create(Object.getPrototypeOf(event)), event);
+	const replace = (fields) => {
+		for (const [key, value] of Object.entries(fields)) if (Object.hasOwn(event, key)) filtered[key] = value;
+	};
+	const isSpeech = filtered.operationId === "ai.generateSpeech";
+	if (hideInputs) {
+		replace({
+			instructions: void 0,
+			system: void 0,
+			prompt: void 0,
+			messages: [],
+			promptMessages: [],
+			experimental_steeringMessages: [],
+			tools: void 0,
+			stepTools: void 0,
+			schema: void 0,
+			schemaName: void 0,
+			schemaDescription: void 0,
+			...typeof filtered.output === "object" ? { output: void 0 } : {},
+			providerOptions: {},
+			value: "",
+			values: [],
+			query: "",
+			documents: [],
+			state: Array.isArray(filtered.state) ? [] : typeof filtered.state === "string" ? "" : {},
+			questions: {},
+			...isSpeech ? { text: "" } : {}
+		});
+		if (filtered.toolCall != null) filtered.toolCall = {
+			...filtered.toolCall,
+			input: void 0
+		};
+		if (filtered.toolOutput != null) filtered.toolOutput = {
+			...filtered.toolOutput,
+			input: void 0
+		};
+		if (Array.isArray(filtered.ranking)) filtered.ranking = filtered.ranking.map((entry) => "document" in entry ? {
+			...entry,
+			document: typeof entry.document === "string" ? "" : {}
+		} : entry);
+	}
+	if (hideOutputs) {
+		replace({
+			content: [],
+			...!isSpeech ? { text: "" } : {},
+			reasoning: Array.isArray(filtered.reasoning) ? [] : void 0,
+			reasoningText: void 0,
+			files: [],
+			sources: [],
+			toolCalls: [],
+			staticToolCalls: [],
+			dynamicToolCalls: [],
+			toolResults: [],
+			staticToolResults: [],
+			dynamicToolResults: [],
+			responseMessages: [],
+			object: void 0,
+			objectText: "",
+			embedding: [],
+			embeddings: [],
+			ranking: [],
+			answers: {},
+			segments: []
+		});
+		if (filtered.toolOutput != null) filtered.toolOutput = {
+			...filtered.toolOutput,
+			output: void 0,
+			error: void 0
+		};
+	}
+	replace({
+		providerMetadata: void 0,
+		error: filtered.error == null ? filtered.error : /* @__PURE__ */ new Error("AI SDK operation failed")
+	});
+	for (const key of ["toolCall", "toolOutput"]) {
+		const toolEvent = filtered[key];
+		if (toolEvent != null && typeof toolEvent === "object") filtered[key] = {
+			...toolEvent,
+			providerMetadata: void 0,
+			..."error" in toolEvent ? { error: toolEvent.error == null ? toolEvent.error : /* @__PURE__ */ new Error("AI SDK operation failed") } : {}
+		};
+	}
+	for (const key of ["request", "response"]) {
+		const filterMetadata = (metadata) => {
+			if (metadata == null || typeof metadata !== "object") return metadata;
+			const filteredMetadata = { ...metadata };
+			delete filteredMetadata.body;
+			if (key === "request" ? hideInputs : hideOutputs) {
+				if ("messages" in metadata) filteredMetadata.messages = [];
+				if ("instructions" in metadata) filteredMetadata.instructions = void 0;
+			}
+			return filteredMetadata;
+		};
+		const metadata = filtered[key];
+		if (metadata != null) filtered[key] = Array.isArray(metadata) ? metadata.map(filterMetadata) : filterMetadata(metadata);
+	}
+	if (Array.isArray(filtered.steps)) filtered.steps = filtered.steps.map((step) => filterTelemetryEvent(step, telemetry));
+	if (Object.hasOwn(event, "finalStep")) filtered.finalStep = filterTelemetryEvent(filtered.finalStep, telemetry);
+	return filtered;
 }
 function augmentEvent(event, telemetry, filterContext = false) {
 	const augmentedEvent = Object.assign(Object.create(Object.getPrototypeOf(event)), event, {
@@ -3083,7 +3294,7 @@ function augmentEvent(event, telemetry, filterContext = false) {
 			includeToolsContext: telemetry.includeToolsContext
 		});
 	}
-	return augmentedEvent;
+	return filterTelemetryEvent(augmentedEvent, telemetry);
 }
 /**
 * Creates a telemetry dispatcher that sends telemetry events
@@ -3109,6 +3320,7 @@ function createTelemetryDispatcher({ telemetry }) {
 		includeRuntimeContext: telemetry?.includeRuntimeContext,
 		includeToolsContext: telemetry?.includeToolsContext
 	};
+	const recordResult = telemetry?.recordInputs !== false && telemetry?.recordOutputs !== false;
 	const mergeTelemetryCallback = (key, deprecatedKey) => {
 		const integrationCallbacks = integrations.map((integration) => {
 			const callback = integration[key] ?? (deprecatedKey == null ? void 0 : integration[deprecatedKey]);
@@ -3128,13 +3340,14 @@ function createTelemetryDispatcher({ telemetry }) {
 		runInTracingChannelSpan: async ({ type, event, execute }) => await runWithTracingChannelSpan({
 			type,
 			event: augmentEvent(event, telemetryMetadata, true)
-		}, execute),
+		}, execute, recordResult),
 		startTracingChannelContext: ({ type, event, completion }) => openTelemetryChannelSpanContext({
 			message: {
 				type,
 				event: augmentEvent(event, telemetryMetadata, true)
 			},
-			completion
+			completion,
+			recordResult
 		}),
 		onStart: mergeTelemetryCallback("onStart"),
 		onStepStart: mergeTelemetryCallback("onStepStart"),
@@ -3176,7 +3389,7 @@ function createTelemetryDispatcher({ telemetry }) {
 			return await runWithTracingChannelSpan({
 				type: "languageModelCall",
 				event: augmentedEvent
-			}, wrappedExecute);
+			}, wrappedExecute, recordResult);
 		},
 		/**
 		* Composes all `executeTool` wrappers around the original tool execution.
@@ -3461,7 +3674,7 @@ async function toResponseMessages({ content: inputContent, tools }) {
 	for (const part of inputContent) {
 		if (part.type === "source") continue;
 		if ((part.type === "tool-result" || part.type === "tool-error") && !part.providerExecuted) continue;
-		if (part.type === "text" && part.text.length === 0) continue;
+		if (part.type === "text" && part.text.length === 0 && part.providerMetadata == null) continue;
 		switch (part.type) {
 			case "text":
 				content.push({
@@ -4294,6 +4507,22 @@ lazySchema(() => zodSchema(z.union([
 		providerMetadata: providerMetadataSchema.optional()
 	}),
 	z.looseObject({
+		type: z.literal("steering-message"),
+		id: z.string(),
+		parts: z.array(z.union([z.looseObject({
+			type: z.literal("text"),
+			text: z.string(),
+			providerMetadata: providerMetadataSchema.optional()
+		}), z.looseObject({
+			type: z.literal("file"),
+			mediaType: z.string(),
+			url: z.string(),
+			filename: z.string().optional(),
+			providerReference: z.record(z.string(), z.string()).optional(),
+			providerMetadata: providerMetadataSchema.optional()
+		})]))
+	}),
+	z.looseObject({
 		type: z.custom((value) => typeof value === "string" && value.startsWith("data-"), { message: "Type must start with \"data-\"" }),
 		id: z.string().optional(),
 		data: z.unknown(),
@@ -4869,6 +5098,14 @@ function processUIMessageStream({ stream, messageMetadataSchema, dataPartSchemas
 					write();
 					break;
 				}
+				case "steering-message":
+					state.message.parts.push({
+						type: "steering-message",
+						id: chunk.id,
+						parts: chunk.parts
+					});
+					write();
+					break;
 				case "start-step":
 					state.message.parts.push({ type: "step-start" });
 					break;
@@ -5212,6 +5449,11 @@ function toUIMessageChunk(part, { tools, sendReasoning = true, sendSources = fal
 			type: "error",
 			errorText: onError(part.error)
 		};
+		case "steering-message": return {
+			type: "steering-message",
+			id: part.id,
+			parts: convertUserMessageToUIParts(part.message)
+		};
 		case "start-step": return { type: "start-step" };
 		case "finish-step": return { type: "finish-step" };
 		case "start":
@@ -5230,9 +5472,52 @@ function toUIMessageChunk(part, { tools, sendReasoning = true, sendSources = fal
 			};
 		case "abort": return part;
 		case "tool-input-end":
+		case "ping":
 		case "raw": return;
 		default: throw new Error(`Unknown chunk type: ${partType}`);
 	}
+}
+function convertUserMessageToUIParts(message) {
+	if (typeof message.content === "string") return [{
+		type: "text",
+		text: message.content
+	}];
+	return message.content.map((part) => {
+		const providerMetadata = part.providerOptions != null ? { providerMetadata: part.providerOptions } : {};
+		if (part.type === "text") return {
+			type: "text",
+			text: part.text,
+			...providerMetadata
+		};
+		const { data, mediaType: dataUrlMediaType } = convertToLanguageModelV4FilePart(part.type === "image" ? part.image : part.data);
+		const mediaType = dataUrlMediaType ?? part.mediaType ?? "image";
+		const filename = part.type === "file" ? part.filename : void 0;
+		const file = {
+			type: "file",
+			mediaType,
+			...filename != null ? { filename } : {},
+			...providerMetadata
+		};
+		switch (data.type) {
+			case "url": return {
+				...file,
+				url: data.url.toString()
+			};
+			case "data": return {
+				...file,
+				url: `data:${mediaType};base64,${convertDataContentToBase64String(data.data)}`
+			};
+			case "text": return {
+				...file,
+				url: `data:${mediaType};base64,${convertUint8ArrayToBase64(new TextEncoder().encode(data.text))}`
+			};
+			case "reference": return {
+				...file,
+				url: "",
+				providerReference: data.reference
+			};
+		}
+	});
 }
 /**
 * Converts a stream of `TextStreamPart<TOOLS>` chunks (as emitted by
@@ -5750,6 +6035,7 @@ var isOutputChunkType = {
 	"model-call-response-metadata": false,
 	"model-call-end": false,
 	error: false,
+	ping: false,
 	raw: false
 };
 function isOutputChunk$1(chunk) {
@@ -6009,7 +6295,7 @@ async function streamLanguageModelCall({ model, tools, toolOrder, output, toolCh
 		callbacks: onLanguageModelCallStart
 	});
 	const callStartTimestampMs = now$3();
-	const { stream: languageModelStream, response, request } = await executeLanguageModelCallInTelemetryContext({
+	const { stream: languageModelStream, response, request: rawRequest } = await executeLanguageModelCallInTelemetryContext({
 		...languageModelCallStartEvent,
 		execute: async () => await resolvedModel.doStream({
 			...callSettings,
@@ -6023,6 +6309,7 @@ async function streamLanguageModelCall({ model, tools, toolOrder, output, toolCh
 			includeRawChunks
 		})
 	});
+	const request = sanitizeRequestMetadata(rawRequest);
 	return {
 		stream: createAsyncIterableStream(languageModelStream.pipeThrough(createLanguageModelV4StreamPartToLanguageModelStreamPartTransform({
 			tools,
@@ -6038,6 +6325,7 @@ async function streamLanguageModelCall({ model, tools, toolOrder, output, toolCh
 			generateId,
 			now: now$3,
 			callStartTimestampMs,
+			request,
 			onLanguageModelCallEnd,
 			collectContent
 		}))),
@@ -6045,7 +6333,7 @@ async function streamLanguageModelCall({ model, tools, toolOrder, output, toolCh
 		request
 	};
 }
-function createLanguageModelV4StreamPartToLanguageModelStreamPartTransform({ tools, instructions, messages, repairToolCall, refineToolInput, abortSignal, callId, provider, modelId, toolChoice, generateId, now, callStartTimestampMs, onLanguageModelCallEnd, collectContent }) {
+function createLanguageModelV4StreamPartToLanguageModelStreamPartTransform({ tools, instructions, messages, repairToolCall, refineToolInput, abortSignal, callId, provider, modelId, toolChoice, generateId, now, callStartTimestampMs, request, onLanguageModelCallEnd, collectContent }) {
 	const toolCallsByToolCallId = /* @__PURE__ */ new Map();
 	const modelCallContent = [];
 	const rawModelCallContent = [];
@@ -6223,6 +6511,7 @@ function createLanguageModelV4StreamPartToLanguageModelStreamPartTransform({ too
 						usage,
 						content: modelCallContent,
 						responseId,
+						...request?.url != null ? { request: { url: getRequestOrigin(request.url) } } : {},
 						...chunk.providerMetadata != null ? { providerMetadata: chunk.providerMetadata } : {},
 						performance
 					},
@@ -7496,10 +7785,20 @@ var DefaultStreamTextResult = class {
 						toolCallerMessages
 					});
 					currentStepMessages = stepMessages;
-					currentStepSteeringMessages = steeringRun?.resolveTakenMessages({
+					const deliveredSteeringMessages = steeringRun?.resolveTakenMessages({
 						stepNumber: currentStep,
 						sentMessages: stepMessages
 					}) ?? [];
+					currentStepSteeringMessages = deliveredSteeringMessages.map(({ message }) => message);
+					if (deliveredSteeringMessages.length > 0) self.addStream(new ReadableStream({ start(controller) {
+						for (const { id, message } of deliveredSteeringMessages) controller.enqueue({
+							type: "steering-message",
+							id,
+							message,
+							stepNumber: currentStep
+						});
+						controller.close();
+					} }));
 					const stepInstructions = prepareStepResult?.instructions ?? prepareStepResult?.system ?? instructionsForNextStep;
 					instructionsForNextStep = stepInstructions;
 					const stepProviderOptions = mergeObjects(providerOptions, prepareStepResult?.providerOptions);
@@ -7644,7 +7943,7 @@ var DefaultStreamTextResult = class {
 									clearFirstChunkTimeout();
 									resetChunkTimeout();
 								}
-								if (shouldBufferToolParts && value.type !== "error" && (isToolPart || bufferedAttemptParts.length > 0)) {
+								if (shouldBufferToolParts && value.type !== "error" && value.type !== "ping" && (isToolPart || bufferedAttemptParts.length > 0)) {
 									bufferedAttemptParts.push(value);
 									continue;
 								}
@@ -7809,6 +8108,7 @@ var DefaultStreamTextResult = class {
 								case "tool-input-end":
 								case "tool-input-delta":
 								case "tool-approval-request":
+								case "ping":
 								case "tool-output-denied":
 									enqueueStepPart(controller, chunk);
 									break;
@@ -8366,6 +8666,22 @@ lazySchema(() => {
 				mediaType: z.string(),
 				url: z.string(),
 				providerMetadata: providerMetadataSchema.optional()
+			}),
+			z.object({
+				type: z.literal("steering-message"),
+				id: z.string(),
+				parts: z.array(z.union([z.object({
+					type: z.literal("text"),
+					text: z.string(),
+					providerMetadata: providerMetadataSchema.optional()
+				}), z.object({
+					type: z.literal("file"),
+					mediaType: z.string(),
+					filename: z.string().optional(),
+					url: z.string(),
+					providerReference: providerReferenceSchema$1.optional(),
+					providerMetadata: providerMetadataSchema.optional()
+				})]))
 			}),
 			z.object({ type: z.literal("step-start") }),
 			z.object({

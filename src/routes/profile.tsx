@@ -21,7 +21,7 @@ export const Route = createFileRoute("/profile")({
 const groups: [string, [string, string][]][] = [
   ["Personal Information", [
     ["Full Legal Name", " Ann caribell"],
-    ["Date of Birth", "Mar 14, 1990"],
+    ["Date of Birth", "Oct 4, ****"],
     ["SSN", "•••-••-4417"],
     ["Marital Status", "Single"],
     ["Citizenship", "U.S. Citizen"],

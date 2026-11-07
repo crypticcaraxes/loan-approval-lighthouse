@@ -3,7 +3,11 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   nitro: {
-    preset: "netlify",
+    preset: "cloudflare-module",
+    cloudflare: {
+      nodeCompat: true,
+      deployConfig: true,
+    },
   },
 
   tanstackStart: {
